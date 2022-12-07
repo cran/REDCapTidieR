@@ -11,11 +11,12 @@ check_repeat_and_nonrepeat(db_data)
 \code{REDCapR::redcap_read_oneshot()$data}}
 }
 \value{
-A helpful error message alerting the user to existence of a form containing
-both repeating and non-repeating structure.
+A helpful error message alerting the user to existence of an instrument
+that was designated both as repeating and non-repeating.
 }
 \description{
 Check for potential instruments that are given both repeating and
-nonrepeating structure. This should never be used with \code{REDCapTidieR}.
+nonrepeating structure. \code{REDCapTidieR} does not support database
+structures built this way.
 }
 \keyword{internal}

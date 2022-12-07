@@ -1,36 +1,106 @@
 # Load Sample Databases ----
 
 test_that("check_user_rights works", {
-  test_data <- tribble(
+  test_data <- tibble::tribble(
     ~field_1,  ~field_2,
     "1",       "2"
   )
 
-  test_metadata <- tribble(
-    ~field_name_updated,  ~form_name,
+  test_metadata <- tibble::tribble(
+    ~field_name_updated, ~form_name,
     "field_1",           "form_1",
     "field_2",           "form_2",
-    "missing_field",     "missing_form"
+    "missing_field",     "missing_form",
+    "missing_field_2",   "missing_form",
+    "missing_field_3",   "missing_form2"
+  )
+
+  readable_metadata <- tibble::tribble(
+    ~field_name_updated,  ~form_name,
+    "field 1",            "form_1",
+    "missing_field",      "missing_form"
   )
 
   expect_warning(
-    check_user_rights(db_data = test_data, db_metadata = test_metadata)
-    )
+    check_user_rights(test_data, test_metadata)
+  )
 })
 
 test_that("check_repeat_and_nonrepeat works", {
-  test_data2 <- tribble(
+  test_data_longitudinal <- tibble::tribble(
     ~record_id,  ~redcap_event_name, ~redcap_repeat_instrument, ~redcap_repeat_instance, ~combination_variable,
-    1,            "event_1",         NA,                        NA,                      "A",
-    2,            "event_2",         "combination",             1,                       "B",
-    3,            "event_3",         "combination",             2,                       "C"
+    1,           "event_1",          NA,                        NA,                      "A",
+    2,           "event_2",          "combination",             1,                       "B",
+    3,           "event_3",          "combination",             2,                       "C"
   )
 
-  expect_error(check_repeat_and_nonrepeat(db_data = test_data))
+  test_data_not_longitudinal <- tibble::tribble(
+    ~new_record_id,  ~redcap_repeat_instrument, ~redcap_repeat_instance, ~combination_variable,
+    1,               NA,                        NA,                      "A",
+    2,               "combination",             1,                       "B",
+    3,               "combination",             2,                       "C"
+  )
+
+  expect_error(check_repeat_and_nonrepeat(db_data = test_data_longitudinal))
+  expect_error(check_repeat_and_nonrepeat(db_data = test_data_not_longitudinal))
 })
 
-test_that("check_repeat_and_nonrepeat works", {
-  test_data <- tribble()
+test_that("check_redcap_populated works", {
+  test_data <- tibble()
 
-  expect_error(check_redcap_populated(db_data = test_data))
+  expect_error(check_redcap_populated(db_data = test_data), class = "redcap_unpopulated")
+})
+
+test_that("check_forms_exist works", {
+  metadata <- tibble(form_name = letters[1:4])
+  forms <- letters[3:6]
+
+  expect_error(check_forms_exist(metadata, forms), regexp = "e and f")
+})
+
+
+test_that("check_req_labelled_fields works", {
+  # Check data and metadata column errors
+  supertbl_no_data <- tibble::tribble(
+    ~redcap_metadata,
+    tibble(field_name = "x", field_label = "X Label"),
+    tibble(field_name = "y", field_label = "Y Label")
+  )
+
+  supertbl_no_metadata <- tibble::tribble(
+    ~redcap_data,
+    tibble(x = letters[1:3]),
+    tibble(y = letters[1:3])
+  )
+
+  ## Errors when data is missing
+  check_req_labelled_fields(supertbl_no_data) %>%
+    expect_error(class = "missing_req_labelled_fields")
+
+  ## Errors when metadata is missing
+  check_req_labelled_fields(supertbl_no_metadata) %>%
+    expect_error(class = "missing_req_labelled_fields")
+})
+
+test_that("check_req_labelled_metadata_fields works", {
+  # Check field_name and field_label within metadata
+  supertbl_no_field_name <- tibble::tribble(
+    ~redcap_data, ~redcap_metadata,
+    tibble(x = letters[1:3]), tibble(field_label = "X Label"),
+    tibble(y = letters[1:3]), tibble(field_label = "Y Label")
+  )
+
+  supertbl_no_field_label <- tibble::tribble(
+    ~redcap_data, ~redcap_metadata,
+    tibble(x = letters[1:3]), tibble(field_name = "x"),
+    tibble(y = letters[1:3]), tibble(field_name = "y")
+  )
+
+  ## Errors when field_name is missing
+  check_req_labelled_metadata_fields(supertbl_no_field_name) %>%
+    expect_error(class = "missing_req_labelled_metadata_fields")
+
+  ## Errors when field_label is missing
+  check_req_labelled_metadata_fields(supertbl_no_field_label) %>%
+    expect_error(class = "missing_req_labelled_metadata_fields")
 })

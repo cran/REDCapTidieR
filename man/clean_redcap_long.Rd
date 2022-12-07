@@ -13,7 +13,7 @@ clean_redcap_long(db_data_long, db_metadata_long, linked_arms)
 \item{db_metadata_long}{The longitudinal REDCap metadata output defined by
 \code{REDCapR::redcap_metadata_read()$data}}
 
-\item{linked_arms}{Output of \code{link_arms}, linking forms to REDCap
+\item{linked_arms}{Output of \code{link_arms}, linking instruments to REDCap
 events/arms}
 }
 \value{
@@ -22,7 +22,7 @@ can access dataframes under the \code{redcap_data} column with reference to
 \code{form_name} and \code{structure} column details.
 }
 \description{
-Helper function internal to \code{read_redcap_tidy} responsible for
+Helper function internal to \code{read_redcap} responsible for
 extraction and final processing of a tidy \code{tibble} to the user from
 a longitudinal REDCap database.
 }

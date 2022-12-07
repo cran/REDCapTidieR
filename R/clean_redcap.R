@@ -2,7 +2,7 @@
 #' Extract non-longitudinal REDCap databases into tidy tibbles
 #'
 #' @description
-#' Helper function internal to \code{read_redcap_tidy} responsible for
+#' Helper function internal to \code{read_redcap} responsible for
 #' extraction and final processing of a tidy \code{tibble} to the user from
 #' a non-longitudinal REDCap database.
 #'
@@ -26,11 +26,8 @@
 #'
 #' @keywords internal
 
-clean_redcap <- function(
-    db_data,
-    db_metadata
-) {
-
+clean_redcap <- function(db_data,
+                         db_metadata) {
   # Apply checkmate checks ---
   assert_data_frame(db_data)
   assert_data_frame(db_metadata)
@@ -45,7 +42,7 @@ clean_redcap <- function(
     FALSE
   }
 
-  ## Repeating Forms Logic ----
+  ## Repeating Instruments Logic ----
   if (has_repeating) {
     repeated_forms <- db_data %>%
       filter(!is.na(.data$redcap_repeat_instrument)) %>%
@@ -56,29 +53,37 @@ clean_redcap <- function(
       redcap_form_name = repeated_forms,
       redcap_data = map(
         repeated_forms,
-        ~ distill_repeat_table(.x, db_data, db_metadata)
+        ~ distill_repeat_table(
+          .x, db_data,
+          db_metadata
+        )
       ),
       structure = "repeating"
     )
   }
 
-  ## Nonrepeating Forms Logic ----
+  ## Nonrepeating Instruments Logic ----
   nonrepeated_forms <- db_metadata %>%
+    filter(!is.na(.data$form_name)) %>%
     pull(.data$form_name) %>%
     unique()
 
   if (has_repeating) {
-    nonrepeated_forms <- setdiff(nonrepeated_forms,
-                                 repeated_forms)
+    nonrepeated_forms <- setdiff(
+      nonrepeated_forms,
+      repeated_forms
+    )
   }
 
   nonrepeated_forms_tibble <- tibble(
     redcap_form_name = nonrepeated_forms,
     redcap_data = map(
       nonrepeated_forms,
-      ~ distill_nonrepeat_table(.x,
-                                db_data,
-                                db_metadata)
+      ~ distill_nonrepeat_table(
+        .x,
+        db_data,
+        db_metadata
+      )
     ),
     structure = "nonrepeating"
   )
@@ -108,18 +113,15 @@ clean_redcap <- function(
 #' \code{REDCapR::redcap_metadata_read()$data}
 #'
 #' @importFrom dplyr filter pull select relocate rename
-#' @importFrom tidyselect all_of everything starts_with
+#' @importFrom tidyselect all_of everything starts_with any_of
 #' @importFrom tibble tibble
 #' @importFrom rlang .data
 #'
 #' @keywords internal
 
-distill_nonrepeat_table <- function(
-    form_name,
-    db_data,
-    db_metadata
-) {
-
+distill_nonrepeat_table <- function(form_name,
+                                    db_data,
+                                    db_metadata) {
   # Repeating Instrument Check ----
   # Check if database supplied contains any repeating instruments to map onto
   # `redcap_repeat_*` variables
@@ -137,14 +139,23 @@ distill_nonrepeat_table <- function(
     pull(.data$field_name_updated)
 
   if (my_fields[1] != my_record_id) {
-    my_fields <- c(my_record_id, all_of(my_fields))
+    my_fields <- c(my_record_id, my_fields)
   }
 
   # Below necessary to remove descriptive text fields
-  # and to add column to indicate that form is completed
+  # and to add column to indicate that instrument is completed
   my_fields <- db_data %>%
-    select(all_of(my_fields), paste0(my_form, "_complete")) %>%
+    select(
+      all_of(my_fields),
+      any_of(paste0(my_form, "_timestamp")),
+      paste0(my_form, "_complete")
+    ) %>%
     names()
+
+  # For forms containing surveys, also pull redcap_survey_identifier
+  if (paste0(my_form, "_timestamp") %in% my_fields) {
+    my_fields <- c(my_fields, "redcap_survey_identifier")
+  }
 
   if (has_repeating) {
     db_data <- db_data %>%
@@ -153,8 +164,10 @@ distill_nonrepeat_table <- function(
 
   db_data %>%
     select(all_of(my_fields)) %>%
+    rename("redcap_survey_timestamp" = any_of(paste0(my_form, "_timestamp"))) %>%
+    relocate(any_of("redcap_survey_timestamp"), .after = everything()) %>%
     rename("form_status_complete" = paste0(my_form, "_complete")) %>%
-    relocate(.data$form_status_complete, .after = everything()) %>%
+    relocate("form_status_complete", .after = everything()) %>%
     tibble()
 }
 
@@ -176,17 +189,15 @@ distill_nonrepeat_table <- function(
 #' \code{REDCapR::redcap_metadata_read()$data}
 #'
 #' @importFrom dplyr filter pull select relocate rename
-#' @importFrom tidyselect all_of everything starts_with
+#' @importFrom tidyselect all_of everything starts_with any_of
 #' @importFrom tibble tibble
 #' @importFrom rlang .data
 #'
 #' @keywords internal
 
-distill_repeat_table <- function(
-    form_name,
-    db_data,
-    db_metadata
-) {
+distill_repeat_table <- function(form_name,
+                                 db_data,
+                                 db_metadata) {
   my_record_id <- names(db_data)[1]
   my_form <- form_name
 
@@ -195,23 +206,34 @@ distill_repeat_table <- function(
     pull(.data$field_name_updated)
 
   if (my_fields[1] != my_record_id) {
-    my_fields <- c(my_record_id, all_of(my_fields))
+    my_fields <- c(my_record_id, my_fields)
   }
 
   # Below necessary to remove descriptive text fields
-  # and to add column to indicate that form is completed
+  # and to add column to indicate that instrument is completed
   my_fields <- db_data %>%
-    select(all_of(my_fields), paste0(my_form, "_complete")) %>%
+    select(
+      all_of(my_fields),
+      any_of(paste0(my_form, "_timestamp")),
+      paste0(my_form, "_complete")
+    ) %>%
     names()
+
+  # For forms containing surveys, also pull redcap_survey_identifier
+  if (paste0(my_form, "_timestamp") %in% my_fields) {
+    my_fields <- c(my_fields, "redcap_survey_identifier")
+  }
 
   db_data %>%
     filter(
       !is.na(.data$redcap_repeat_instance) &
         .data$redcap_repeat_instrument == my_form
     ) %>%
-    select(all_of(my_fields), .data$redcap_repeat_instance) %>%
-    relocate(.data$redcap_repeat_instance, .after = all_of(my_record_id)) %>%
+    select(all_of(my_fields), "redcap_repeat_instance") %>%
+    relocate("redcap_repeat_instance", .after = all_of(my_record_id)) %>%
+    rename("redcap_survey_timestamp" = any_of(paste0(my_form, "_timestamp"))) %>%
+    relocate(any_of("redcap_survey_timestamp"), .after = everything()) %>%
     rename("form_status_complete" = paste0(my_form, "_complete")) %>%
-    relocate(.data$form_status_complete, .after = everything()) %>%
+    relocate("form_status_complete", .after = everything()) %>%
     tibble()
 }
