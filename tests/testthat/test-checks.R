@@ -1,13 +1,17 @@
-# Load Sample Databases ----
-
 test_that("check_user_rights works", {
   test_data <- tibble::tribble(
-    ~field_1,  ~field_2,
-    "1",       "2"
+    ~record_id, ~field_1,  ~field_2,
+    1,          "1",       "2"
+  )
+
+  test_data_empty <- tibble::tribble(
+    ~record_id,
+    1
   )
 
   test_metadata <- tibble::tribble(
     ~field_name_updated, ~form_name,
+    "record_id",         NA_character_,
     "field_1",           "form_1",
     "field_2",           "form_2",
     "missing_field",     "missing_form",
@@ -15,14 +19,14 @@ test_that("check_user_rights works", {
     "missing_field_3",   "missing_form2"
   )
 
-  readable_metadata <- tibble::tribble(
-    ~field_name_updated,  ~form_name,
-    "field 1",            "form_1",
-    "missing_field",      "missing_form"
+  expect_warning(
+    check_user_rights(test_data, test_metadata),
+    class = "partial_data_access"
   )
 
-  expect_warning(
-    check_user_rights(test_data, test_metadata)
+  expect_error(
+    check_user_rights(test_data_empty, test_metadata),
+    class = "no_data_access"
   )
 })
 
@@ -41,8 +45,20 @@ test_that("check_repeat_and_nonrepeat works", {
     3,               "combination",             2,                       "C"
   )
 
-  expect_error(check_repeat_and_nonrepeat(db_data = test_data_longitudinal))
-  expect_error(check_repeat_and_nonrepeat(db_data = test_data_not_longitudinal))
+  test_repeating_event <- tibble::tribble(
+    ~record_id, ~redcap_repeat_instrument, ~redcap_repeat_instance, ~combination_variable,
+    1, NA, NA, "A",
+    1, NA, 1, "B",
+    2, "combination", 2, NA
+  )
+
+  expect_error(check_repeat_and_nonrepeat(db_data = test_data_longitudinal),
+    class = "repeat_nonrepeat_instrument"
+  )
+  expect_error(check_repeat_and_nonrepeat(db_data = test_data_not_longitudinal),
+    class = "repeat_nonrepeat_instrument"
+  )
+  expect_no_error(check_repeat_and_nonrepeat(db_data = test_repeating_event))
 })
 
 test_that("check_redcap_populated works", {
@@ -56,30 +72,6 @@ test_that("check_forms_exist works", {
   forms <- letters[3:6]
 
   expect_error(check_forms_exist(metadata, forms), regexp = "e and f")
-})
-
-
-test_that("check_req_labelled_fields works", {
-  # Check data and metadata column errors
-  supertbl_no_data <- tibble::tribble(
-    ~redcap_metadata,
-    tibble(field_name = "x", field_label = "X Label"),
-    tibble(field_name = "y", field_label = "Y Label")
-  )
-
-  supertbl_no_metadata <- tibble::tribble(
-    ~redcap_data,
-    tibble(x = letters[1:3]),
-    tibble(y = letters[1:3])
-  )
-
-  ## Errors when data is missing
-  check_req_labelled_fields(supertbl_no_data) %>%
-    expect_error(class = "missing_req_labelled_fields")
-
-  ## Errors when metadata is missing
-  check_req_labelled_fields(supertbl_no_metadata) %>%
-    expect_error(class = "missing_req_labelled_fields")
 })
 
 test_that("check_req_labelled_metadata_fields works", {
@@ -103,4 +95,57 @@ test_that("check_req_labelled_metadata_fields works", {
   ## Errors when field_label is missing
   check_req_labelled_metadata_fields(supertbl_no_field_label) %>%
     expect_error(class = "missing_req_labelled_metadata_fields")
+})
+
+test_that("check_parsed_labels works", {
+  check_parsed_labels(letters[1:2], "field_name") %>%
+    expect_no_warning()
+
+  cnd <- check_parsed_labels(rep("a", 2), "field_name") %>%
+    rlang::catch_cnd(classes = "duplicate_labels")
+
+  expect_equal(cnd$field, "field_name")
+
+  cnd <- check_parsed_labels(c(a = ""), "field_name") %>%
+    rlang::catch_cnd(classes = "blank_labels")
+
+  expect_equal(cnd$field, "field_name")
+})
+
+test_that("checkmate wrappers work", {
+  # supertbl
+  expect_error(check_arg_is_supertbl(123), class = "check_supertbl")
+
+  missing_col_supertbl <- tibble(redcap_data = list()) %>%
+    as_supertbl()
+
+  missing_list_col_supertbl <- tibble(redcap_data = list(), redcap_metadata = 123) %>%
+    as_supertbl()
+
+  good_supertbl <- tibble(redcap_data = list(), redcap_metadata = list()) %>%
+    as_supertbl()
+
+  expect_error(check_arg_is_supertbl(missing_col_supertbl), class = "missing_req_cols")
+  expect_error(check_arg_is_supertbl(missing_list_col_supertbl), class = "missing_req_list_cols")
+  expect_true(check_arg_is_supertbl(good_supertbl))
+
+  # environment
+  expect_error(check_arg_is_env(123), class = "check_environment")
+  expect_true(check_arg_is_env(new.env()))
+
+  # character
+  expect_error(check_arg_is_character(123), class = "check_character")
+  expect_true(check_arg_is_character("abc"))
+
+  # logical
+  expect_error(check_arg_is_logical(123), class = "check_logical")
+  expect_true(check_arg_is_logical(TRUE))
+
+  # choices
+  expect_error(check_arg_choices(123, choices = letters[1:3]), class = "check_choice")
+  expect_true(check_arg_choices("a", choices = letters[1:3]))
+
+  # token
+  expect_error(check_arg_is_valid_token("abc"), class = "invalid_token")
+  expect_true(check_arg_is_valid_token("123456789ABCDEF123456789ABCDEF01"))
 })

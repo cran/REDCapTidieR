@@ -18,6 +18,7 @@ status](https://www.r-pkg.org/badges/version/REDCapTidieR)](https://CRAN.R-proje
 [![](https://cranlogs.r-pkg.org/badges/grand-total/REDCapTidieR)](https://cran.r-project.org/package=REDCapTidieR)
 [![Codecov test
 coverage](https://codecov.io/gh/CHOP-CGTInformatics/REDCapTidieR/branch/main/graph/badge.svg)](https://app.codecov.io/gh/CHOP-CGTInformatics/REDCapTidieR?branch=main)
+[![OpenSSF Best Practices](https://bestpractices.coreinfrastructure.org/projects/6845/badge)](https://bestpractices.coreinfrastructure.org/projects/6845)
 <!-- badges: end -->
 
 The REDCapTidieR package provides an elegant way to
@@ -61,7 +62,7 @@ devtools::install_github("CHOP-CGTInformatics/REDCapTidieR")
 Use `read_redcap()` together with `bind_tibbles()` to import data from
 all instruments into your environment.
 
-![Demonstration of using the `read_redcap` and `bind_tibbles`
+![Demonstration of using the `read_redcap()` and `bind_tibbles()`
 functions](man/figures/redcaptidier-demo.gif)
 
 Read the [Getting Started
@@ -96,4 +97,4 @@ The development was funded using the following sources:
 - *Stephan Kadauke Start-up funds.* Stephan Kadauke, PI, CHOP, 2018-2024
 
 - *CHOP-based GMP cell manufacturing (MFG) for CAR T clinical trials*.
-  Stephan Grupp, PI; Stephan Kadauke, co-PI, CHOP, 2020-2022
+  Stephan Grupp, PI; Stephan Kadauke, co-PI, CHOP, 2021-2023

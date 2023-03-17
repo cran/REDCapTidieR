@@ -36,16 +36,16 @@ test_that("multi_choice_to_labels works", {
     db_metadata_classic
   )
 
-  # Expect warning on error variable where a radio button is created for a
-  # descriptive text field
-  expect_warning(
-    multi_choice_to_labels(
-      db_data = db_data_classic,
-      db_metadata = db_metadata_classic
-    ) %>%
-      suppressWarnings(classes = "empty_parse_warning"),
-    class = "field_missing_categories"
-  )
+  # Expect warning on misconfigured variables
+  multi_choice_to_labels(
+    db_data = db_data_classic,
+    db_metadata = db_metadata_classic
+  ) %>%
+    # radio button is created for a descriptive text field
+    expect_warning(class = "empty_parse_warning") %>%
+    expect_warning(class = "field_missing_categories") %>%
+    # radio button with duplicate labels
+    expect_warning(class = "duplicate_labels")
 
   out <- multi_choice_to_labels(
     db_data = db_data_classic,
@@ -53,7 +53,8 @@ test_that("multi_choice_to_labels works", {
   ) %>%
     suppressWarnings(classes = c(
       "empty_parse_warning",
-      "field_missing_categories"
+      "field_missing_categories",
+      "duplicate_labels"
     ))
 
   # Test general structure
@@ -77,7 +78,7 @@ test_that("multi_choice_to_labels works", {
 
 test_that("parse_labels works", {
   # Note: implicitly testing strip_html_field_embedding() by checking that
-  # parse_labels successfully stipes html tags and field embedding logic
+  # parse_labels successfully stips html tags and field embedding logic
   valid_string <- "choice_1, one | choice_2, two {abc} | choice_3, <b>three</b>"
   valid_tibble_output <- tibble::tribble(
     ~raw,       ~label,
@@ -89,8 +90,7 @@ test_that("parse_labels works", {
   names(valid_vector_output) <- c("choice_1", "choice_2", "choice_3")
 
   invalid_string_1 <- "raw, label | that has | pipes but no other | commas"
-
-  invalid_string_2 <- "raw, label | structure, | with odd, matrix dimensions"
+  invalid_string_2 <- "raw, la|bel with pipe"
 
   warning_string_1 <- NA_character_
 
@@ -101,21 +101,63 @@ test_that("parse_labels works", {
   )
   expect_error(
     parse_labels(invalid_string_1),
-    class = "comma_parse_error"
+    class = "label_parse_error"
   )
   expect_error(
     parse_labels(invalid_string_2),
-    class = "matrix_parse_error"
+    class = "label_parse_error"
   )
   expect_warning(
     parse_labels(warning_string_1),
     class = "empty_parse_warning"
   )
+
+  # Check that parse_labels can account for splits where no white space exists
+
+  ## between pipes
+  valid_string_no_ws1 <- "choice_1, one|choice_2, two {abc}|choice_3, <b>three</b>"
+  expect_equal(parse_labels(valid_string_no_ws1), valid_tibble_output)
+
+  ## between commas
+  valid_string_no_ws2 <- "choice_1,one|choice_2,two {abc}|choice_3,<b>three</b>"
+  expect_equal(parse_labels(valid_string_no_ws2), valid_tibble_output)
+
+  # Check that return_stripped_text_flag works
+
+  ## When html/embedding was stripped
+  expect_equal(
+    parse_labels(valid_string, return_stripped_text_flag = TRUE),
+    list(valid_tibble_output, TRUE)
+  )
+
+  expect_equal(
+    parse_labels(valid_string, return_vector = TRUE, return_stripped_text_flag = TRUE),
+    list(valid_vector_output, TRUE)
+  )
+
+  ## When nothing was stripped
+  valid_string_no_html <- "choice_1, one | choice_2, two | choice_3, three"
+
+  expect_equal(
+    parse_labels(valid_string_no_html, return_stripped_text_flag = TRUE),
+    list(valid_tibble_output, FALSE)
+  )
+
+  expect_equal(
+    parse_labels(valid_string_no_html, return_vector = TRUE, return_stripped_text_flag = TRUE),
+    list(valid_vector_output, FALSE)
+  )
+
+  ## Flag returns FALSE when there were no labels
+  parse_labels(warning_string_1, return_stripped_text_flag = TRUE) |>
+    suppressWarnings(classes = "empty_parse_warning") |>
+    purrr::pluck(2) |>
+    expect_equal(FALSE)
 })
 
 test_that("link_arms works", {
   httptest::with_mock_api({
-    out <- link_arms(redcap_uri, longitudinal_token)
+    out <- link_arms(creds$REDCAP_URI, creds$REDCAPTIDIER_LONGITUDINAL_API)
   })
 
   # output is a tibble
@@ -197,4 +239,126 @@ test_that("update_field_names handles metadata without checkbox fields", {
   # field_label is unchanged
 
   expect_equal(out$field_label, test_meta$field_label)
+})
+
+test_that("try_redcapr works", {
+  # Passes along data when success is TRUE
+  try_redcapr(list(success = TRUE, data = "some_data")) %>%
+    expect_equal("some_data")
+
+  # Throws expected errors for internal REDCapR errors
+  try_redcapr(stop()) %>%
+    expect_error(class = "unexpected_error")
+
+  # Throws expected errors when REDCapR returns success = FALSE
+  try_redcapr(stop("Could not resolve host")) %>%
+    expect_error(class = "cannot_resolve_host")
+
+  try_redcapr(list(success = FALSE, status_code = 403)) %>%
+    expect_error(class = "api_token_rejected")
+
+  try_redcapr(list(success = FALSE, status_code = 405)) %>%
+    expect_error(class = "cannot_post")
+
+  try_redcapr(list(success = FALSE, status_code = "")) %>%
+    expect_error(class = "unexpected_error")
+
+  try_redcapr(list(success = TRUE, data = as.numeric("A"))) %>%
+    expect_warning(class = "unexpected_warning")
+})
+
+test_that("add_partial_keys works", {
+  test_data <- tibble::tribble(
+    ~record_id, ~redcap_event_name, ~redcap_repeat_instrument, ~redcap_repeat_instance,
+    1, "nr_event_arm_1", NA, NA,
+    1, "nr_event_arm_1", "r_instrument", 1,
+    3, "nr_event_arm_1", "r_instrument", 1,
+    4, "r_event_arm_1", NA, 1
+  )
+
+  out <- test_data %>%
+    add_partial_keys(var = .data$redcap_event_name)
+
+  expected_cols <- c(
+    "record_id",
+    "redcap_event_name",
+    "redcap_repeat_instrument",
+    "redcap_form_instance",
+    "redcap_event_instance",
+    "redcap_event",
+    "redcap_arm"
+  )
+
+  expect_true(all(expected_cols %in% names(out)))
+  expect_s3_class(out, "data.frame")
+  expect_true(nrow(out) > 0)
+})
+
+test_that("create_repeat_instance_vars works", {
+  repeat_events <- tibble::tribble(
+    ~record_id, ~redcap_event, ~redcap_arm, ~redcap_repeat_instrument, ~redcap_repeat_instance,
+    1, "nr_event", 1, NA, NA,
+    1, "nr_event", 1, "r_instrument", 1,
+    3, "nr_event", 1, "r_instrument", 1,
+    4, "r_event", 1, NA, 1
+  )
+
+  no_repeat_events <- tibble::tribble(
+    ~record_id, ~redcap_event, ~redcap_arm, ~redcap_repeat_instrument, ~redcap_repeat_instance,
+    1, "nr_event", 1, NA, NA,
+    1, "nr_event", 1, "r_instrument", 1,
+    3, "nr_event", 1, "r_instrument", 1
+  )
+
+  expected_cols <- c(
+    "record_id",
+    "redcap_event",
+    "redcap_arm",
+    "redcap_repeat_instrument",
+    "redcap_form_instance",
+    "redcap_event_instance"
+  )
+
+  repeat_out <- create_repeat_instance_vars(repeat_events)
+  nonrepeat_out <- create_repeat_instance_vars(no_repeat_events)
+
+  expect_true(all(expected_cols %in% names(repeat_out)))
+  expect_s3_class(repeat_out, "data.frame")
+  expect_true(nrow(repeat_out) > 0)
+
+  expect_true(all(expected_cols[1:5] %in% names(nonrepeat_out)))
+  expect_s3_class(nonrepeat_out, "data.frame")
+  expect_true(nrow(nonrepeat_out) > 0)
+})
+
+test_that("remove_empty_rows works", {
+  my_record_id <- "record_id"
+
+  complete_out <- tibble::tribble(
+    ~record_id, ~redcap_event, ~redcap_event_instance, ~data, ~form_status_complete,
+    1, "event1", 1, "A", "Complete",
+    1, "event2", 2, "B", "Incomplete",
+    2, "event1", 1, "C", "Complete",
+  )
+
+  complete_out %>%
+    remove_empty_rows(my_record_id) %>%
+    expect_equal(complete_out)
+
+  empty_out <- tibble::tribble(
+    ~record_id, ~redcap_event, ~redcap_event_instance, ~data, ~form_status_complete,
+    1, "event1", 1, "A", "Complete",
+    1, "event2", 2, NA, "Incomplete",
+    2, "event1", 1, "C", "Complete",
+  )
+
+  expected_out <- tibble::tribble(
+    ~record_id, ~redcap_event, ~redcap_event_instance, ~data, ~form_status_complete,
+    1, "event1", 1, "A", "Complete",
+    2, "event1", 1, "C", "Complete",
+  )
+
+  empty_out %>%
+    remove_empty_rows(my_record_id) %>%
+    expect_equal(expected_out)
 })

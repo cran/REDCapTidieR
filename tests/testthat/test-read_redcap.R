@@ -10,16 +10,17 @@ test_that("read_redcap works for a classic database with a nonrepeating instrume
   # Define partial key columns that should be in a nonrepeating table
   # from a classic database
   expected_present_cols <- c("record_id")
-  expected_absent_cols <- c("redcap_repeat_instance", "redcap_event", "redcap_arm")
+  expected_absent_cols <- c("redcap_form_instance", "redcap_event", "redcap_arm")
 
   # Pull a nonrepeating table from a classic database
   httptest::with_mock_api({
     out <-
-      read_redcap(redcap_uri, classic_token) %>%
+      read_redcap(creds$REDCAP_URI, creds$REDCAPTIDIER_CLASSIC_API) %>%
       # suppress expected warning
       suppressWarnings(classes = c(
         "field_missing_categories",
-        "empty_parse_warning"
+        "empty_parse_warning",
+        "duplicate_labels"
       )) %>%
       filter(redcap_form_name == "nonrepeated") %>%
       select(redcap_data) %>%
@@ -38,17 +39,18 @@ test_that("read_redcap works for a classic database with a nonrepeating instrume
 test_that("read_redcap works for a classic database with a repeating instrument", {
   # Define partial key columns that should be in a repeating table
   # from a classic database
-  expected_present_cols <- c("record_id", "redcap_repeat_instance")
+  expected_present_cols <- c("record_id", "redcap_form_instance")
   expected_absent_cols <- c("redcap_event", "redcap_arm")
 
   # Pull a repeating table from a classic database
   httptest::with_mock_api({
     out <-
-      read_redcap(redcap_uri, classic_token) %>%
+      read_redcap(creds$REDCAP_URI, creds$REDCAPTIDIER_CLASSIC_API) %>%
       # suppress expected warning
       suppressWarnings(classes = c(
         "field_missing_categories",
-        "empty_parse_warning"
+        "empty_parse_warning",
+        "duplicate_labels"
       )) %>%
       filter(redcap_form_name == "repeated") %>%
       select(redcap_data) %>%
@@ -68,11 +70,12 @@ test_that("read_redcap returns checkbox fields", {
   # Pull a nonrepeating table from a classic database
   httptest::with_mock_api({
     out <-
-      read_redcap(redcap_uri, classic_token) %>%
+      read_redcap(creds$REDCAP_URI, creds$REDCAPTIDIER_CLASSIC_API) %>%
       # suppress expected warning
       suppressWarnings(classes = c(
         "field_missing_categories",
-        "empty_parse_warning"
+        "empty_parse_warning",
+        "duplicate_labels"
       )) %>%
       filter(redcap_form_name == "data_field_types") %>%
       select(redcap_data) %>%
@@ -86,20 +89,21 @@ test_that("supplying forms is equivalent to post-hoc filtering for a classic dat
   # Explicitly testing form that doesn't contain identifiers
   httptest::with_mock_api({
     filtered_by_api <-
-      read_redcap(redcap_uri,
-        classic_token,
+      read_redcap(creds$REDCAP_URI,
+        creds$REDCAPTIDIER_CLASSIC_API,
         forms = "repeated"
       )
 
     filtered_locally <-
       read_redcap(
-        redcap_uri,
-        classic_token
+        creds$REDCAP_URI,
+        creds$REDCAPTIDIER_CLASSIC_API
       ) %>%
       # suppress expected warning
       suppressWarnings(classes = c(
         "field_missing_categories",
-        "empty_parse_warning"
+        "empty_parse_warning",
+        "duplicate_labels"
       )) %>%
       filter(redcap_form_name == "repeated")
   })
@@ -113,15 +117,15 @@ test_that("supplying forms is equivalent to post-hoc filtering for a longitudina
   # Explicitly testing form that doesn't contain identifiers
   httptest::with_mock_api({
     filtered_by_api <-
-      read_redcap(redcap_uri,
-        longitudinal_token,
+      read_redcap(creds$REDCAP_URI,
+        creds$REDCAPTIDIER_LONGITUDINAL_API,
         forms = "repeated"
       )
 
     filtered_locally <-
       read_redcap(
-        redcap_uri,
-        longitudinal_token
+        creds$REDCAP_URI,
+        creds$REDCAPTIDIER_LONGITUDINAL_API
       ) %>%
       filter(redcap_form_name == "repeated")
   })
@@ -135,15 +139,15 @@ test_that("supplying forms is equivalent to post-hoc filtering for a database wi
   # Explicitly testing form that doesn't contain identifiers
   httptest::with_mock_api({
     filtered_by_api <-
-      read_redcap(redcap_uri,
-        repeat_first_instrument_token,
+      read_redcap(creds$REDCAP_URI,
+        creds$REDCAPTIDIER_REPEAT_FIRST_INSTRUMENT_API,
         forms = "form_2"
       )
 
     filtered_locally <-
       read_redcap(
-        redcap_uri,
-        repeat_first_instrument_token
+        creds$REDCAP_URI,
+        creds$REDCAPTIDIER_REPEAT_FIRST_INSTRUMENT_API
       ) %>%
       filter(redcap_form_name == "form_2")
   })
@@ -157,12 +161,12 @@ test_that("read_redcap works for a longitudinal, single arm database with a nonr
   # Define partial key columns that should be in a nonrepeating table
   # from a longitudinal, single arm database
   expected_present_cols <- c("record_id", "redcap_event")
-  expected_absent_cols <- c("redcap_repeat_instance", "redcap_arm")
+  expected_absent_cols <- c("redcap_form_instance", "redcap_arm")
 
   # Pull a nonrepeating table from a longitudinal, single arm database
   httptest::with_mock_api({
     out <-
-      read_redcap(redcap_uri, longitudinal_noarms_token) %>%
+      read_redcap(creds$REDCAP_URI, creds$REDCAPTIDIER_LONGITUDINAL_NOARMS_API) %>%
       filter(redcap_form_name == "nonrepeated") %>%
       select(redcap_data) %>%
       pluck(1, 1)
@@ -180,13 +184,13 @@ test_that("read_redcap works for a longitudinal, single arm database with a nonr
 test_that("read_redcap works for a longitudinal, single arm database with a repeating instrument", {
   # Define partial key columns that should be in a repeating table
   # from a longitudinal, single arm database
-  expected_present_cols <- c("record_id", "redcap_repeat_instance", "redcap_event")
+  expected_present_cols <- c("record_id", "redcap_form_instance", "redcap_event")
   expected_absent_cols <- c("redcap_arm")
 
   # Pull a repeating table from a longitudinal, single arm database
   httptest::with_mock_api({
     out <-
-      read_redcap(redcap_uri, longitudinal_noarms_token) %>%
+      read_redcap(creds$REDCAP_URI, creds$REDCAPTIDIER_LONGITUDINAL_NOARMS_API) %>%
       filter(redcap_form_name == "repeated") %>%
       select(redcap_data) %>%
       pluck(1, 1)
@@ -205,12 +209,12 @@ test_that("read_redcap works for a longitudinal, multi-arm database with a nonre
   # Define partial key columns that should be in a nonrepeating table
   # from a longitudinal, multi-arm database
   expected_present_cols <- c("record_id", "redcap_event", "redcap_arm")
-  expected_absent_cols <- c("redcap_repeat_instance")
+  expected_absent_cols <- c("redcap_form_instance")
 
   # Pull a nonrepeating table from a longitudinal, multi arm database
   httptest::with_mock_api({
     out <-
-      read_redcap(redcap_uri, longitudinal_token) %>%
+      read_redcap(creds$REDCAP_URI, creds$REDCAPTIDIER_LONGITUDINAL_API) %>%
       filter(redcap_form_name == "nonrepeated") %>%
       select(redcap_data) %>%
       pluck(1, 1)
@@ -228,12 +232,12 @@ test_that("read_redcap works for a longitudinal, multi-arm database with a nonre
 test_that("read_redcap works for a longitudinal, multi-arm database with a repeating instrument", {
   # Define partial key columns that should be in a repeating table
   # from a longitudinal, multi-arm database
-  expected_present_cols <- c("record_id", "redcap_repeat_instance", "redcap_event", "redcap_arm")
+  expected_present_cols <- c("record_id", "redcap_form_instance", "redcap_event", "redcap_arm")
 
   # Pull a repeating table from a longitudinal, multi arm database
   httptest::with_mock_api({
     out <-
-      read_redcap(redcap_uri, longitudinal_token) %>%
+      read_redcap(creds$REDCAP_URI, creds$REDCAPTIDIER_LONGITUDINAL_API) %>%
       filter(redcap_form_name == "repeated") %>%
       select(redcap_data) %>%
       pluck(1, 1)
@@ -246,8 +250,8 @@ test_that("read_redcap works for a longitudinal, multi-arm database with a repea
 
 test_that("errors when non-existent form is supplied alone", {
   httptest::with_mock_api({
-    read_redcap(redcap_uri,
-      classic_token,
+    read_redcap(creds$REDCAP_URI,
+      creds$REDCAPTIDIER_CLASSIC_API,
       forms = "fake-form"
     ) %>%
       expect_error(class = "form_does_not_exist")
@@ -256,8 +260,8 @@ test_that("errors when non-existent form is supplied alone", {
 
 test_that("errors when non-existent form is supplied with existing forms", {
   httptest::with_mock_api({
-    read_redcap(redcap_uri,
-      classic_token,
+    read_redcap(creds$REDCAP_URI,
+      creds$REDCAPTIDIER_CLASSIC_API,
       forms = c("fake-form", "repeated")
     ) %>%
       expect_error(class = "form_does_not_exist")
@@ -282,7 +286,7 @@ test_that("get_fields_to_drop handles checkboxes", {
 
 test_that("read_redcap returns metadata", {
   httptest::with_mock_api({
-    out <- read_redcap(redcap_uri, longitudinal_token)
+    out <- read_redcap(creds$REDCAP_URI, creds$REDCAPTIDIER_LONGITUDINAL_API)
   })
 
   expected_cols <- c(
@@ -313,7 +317,7 @@ test_that("read_redcap returns metadata", {
 
   ## Some fields we know won't be in the metadata
   exclude_fields <- c(
-    "redcap_repeat_instance", "redcap_event",
+    "redcap_form_instance", "redcap_event",
     "redcap_arm", "form_status_complete"
   )
 
@@ -335,10 +339,11 @@ test_that("read_redcap returns metadata", {
 
 test_that("read_redcap suppresses events metadata for non-longitudinal database", {
   httptest::with_mock_api({
-    out <- read_redcap(redcap_uri, classic_token) %>%
+    out <- read_redcap(creds$REDCAP_URI, creds$REDCAPTIDIER_CLASSIC_API) %>%
       suppressWarnings(classes = c(
         "field_missing_categories",
-        "empty_parse_warning"
+        "empty_parse_warning",
+        "duplicate_labels"
       ))
   })
 
@@ -347,17 +352,18 @@ test_that("read_redcap suppresses events metadata for non-longitudinal database"
 
 test_that("read_redcap preserves form_name order mirroring original REDCapR metadata order", {
   httptest::with_mock_api({
-    expected_order <- REDCapR::redcap_metadata_read(redcap_uri,
-      classic_token,
+    expected_order <- REDCapR::redcap_metadata_read(creds$REDCAP_URI,
+      creds$REDCAPTIDIER_CLASSIC_API,
       verbose = FALSE
     )$data %>%
       pull(form_name) %>%
       unique()
 
-    out <- read_redcap(redcap_uri, classic_token) %>%
+    out <- read_redcap(creds$REDCAP_URI, creds$REDCAPTIDIER_CLASSIC_API) %>%
       suppressWarnings(classes = c(
         "field_missing_categories",
-        "empty_parse_warning"
+        "empty_parse_warning",
+        "duplicate_labels"
       ))
   })
 
@@ -366,13 +372,14 @@ test_that("read_redcap preserves form_name order mirroring original REDCapR meta
 
 test_that("read_redcap returns expected survey fields", {
   httptest::with_mock_api({
-    out <- read_redcap(redcap_uri,
-      classic_token,
+    out <- read_redcap(creds$REDCAP_URI,
+      creds$REDCAPTIDIER_CLASSIC_API,
       export_survey_fields = TRUE
     ) %>%
       suppressWarnings(classes = c(
         "field_missing_categories",
-        "empty_parse_warning"
+        "empty_parse_warning",
+        "duplicate_labels"
       ))
   })
 
@@ -386,4 +393,134 @@ test_that("read_redcap returns expected survey fields", {
   expect_true(all(expected_rep_cols %in% names(repeat_survey_data)))
 
   checkmate::expect_class(survey_data$redcap_survey_timestamp, c("POSIXct", "POSIXt"))
+})
+
+test_that("read_redcap errors with bad inputs", {
+  # Checking for type and length constraints where relevant
+
+  # args missing
+
+  ## TODO
+
+  # redcap uri
+  expect_error(read_redcap(123, creds$REDCAPTIDIER_CLASSIC_API), class = "check_character")
+  expect_error(read_redcap(letters[1:3], creds$REDCAPTIDIER_CLASSIC_API), class = "check_character")
+  expect_error(read_redcap("https://www.google.com", creds$REDCAPTIDIER_CLASSIC_API), class = "cannot_post")
+  expect_error(read_redcap("https://www.google.comm", creds$REDCAPTIDIER_CLASSIC_API), class = "cannot_resolve_host")
+
+  # token
+  expect_error(read_redcap(creds$REDCAP_URI, 123), class = "check_character")
+  expect_error(read_redcap(creds$REDCAP_URI, letters[1:3]), class = "check_character")
+  expect_error(read_redcap(creds$REDCAP_URI, "abc"), class = "invalid_token")
+  expect_error(read_redcap(creds$REDCAP_URI, ""), class = "invalid_token")
+  expect_error(
+    read_redcap(creds$REDCAP_URI, "CC0CE44238EF65C5DA26A55DD749AF7"), # 31 hex characters
+    class = "invalid_token"
+  )
+  httptest::with_mock_api({
+    expect_error(
+      read_redcap(creds$REDCAP_URI, "CC0CE44238EF65C5DA26A55DD749AF7A"), # will be rejected
+      class = "api_token_rejected"
+    )
+  })
+
+  # raw_or_label
+  expect_error(
+    read_redcap(creds$REDCAP_URI, creds$REDCAPTIDIER_CLASSIC_API, raw_or_label = "bad option"),
+    class = "check_choice"
+  )
+
+  # forms
+  expect_error(
+    read_redcap(creds$REDCAP_URI, creds$REDCAPTIDIER_CLASSIC_API, forms = 123),
+    class = "check_character"
+  )
+
+  # export_survey_fields
+  expect_error(
+    read_redcap(creds$REDCAP_URI, creds$REDCAPTIDIER_CLASSIC_API, export_survey_fields = 123),
+    class = "check_logical"
+  )
+  expect_error(
+    read_redcap(creds$REDCAP_URI, creds$REDCAPTIDIER_CLASSIC_API, export_survey_fields = c(TRUE, TRUE)),
+    class = "check_logical"
+  )
+
+  # suppress_redcapr_messages
+  expect_error(
+    read_redcap(creds$REDCAP_URI, creds$REDCAPTIDIER_CLASSIC_API, suppress_redcapr_messages = 123),
+    class = "check_logical"
+  )
+  expect_error(
+    read_redcap(creds$REDCAP_URI, creds$REDCAPTIDIER_CLASSIC_API, suppress_redcapr_messages = c(TRUE, TRUE)),
+    class = "check_logical"
+  )
+})
+
+test_that("read_redcap returns S3 object", {
+  httptest::with_mock_api({
+    out <- read_redcap(creds$REDCAP_URI, creds$REDCAPTIDIER_LONGITUDINAL_API)
+  })
+
+  expect_s3_class(out, "redcap_supertbl")
+})
+
+test_that("read_redcap handles access restrictions", {
+  # Warns due to partial data access
+  httptest::with_mock_api({
+    read_redcap(creds$REDCAP_URI, creds$REDCAPTIDIER_RESTRICTED_ACCESS_API) %>%
+      expect_warning(class = "partial_data_access")
+  })
+
+  httptest::with_mock_api({
+    out <- read_redcap(creds$REDCAP_URI, creds$REDCAPTIDIER_RESTRICTED_ACCESS_API) %>%
+      suppressWarnings(classes = "redcap_user_rights")
+  })
+
+  # Response has expected instruments
+  expect_equal(out$redcap_form_name, c("full_access", "remove_phi_access", "deidentify_phi_access"))
+
+  # Errors if only instruments with no access were requested
+  httptest::with_mock_api({
+    read_redcap(creds$REDCAP_URI, creds$REDCAPTIDIER_RESTRICTED_ACCESS_API, forms = "no_access") %>%
+      expect_error(class = "no_data_access")
+  })
+})
+
+test_that("read_redcap returns expected vals from repeating events databases", {
+  httptest::with_mock_api({
+    out <- read_redcap(creds$REDCAP_URI, creds$REDCAPTIDIER_REPEATING_EVENT_API)
+  })
+
+  nonrepeat_out <- out %>%
+    filter(redcap_form_name == "nr_instrument") %>%
+    select(redcap_data) %>%
+    pluck(1, 1)
+
+  repeat_out <- out %>%
+    filter(redcap_form_name == "r_instrument") %>%
+    select(redcap_data) %>%
+    pluck(1, 1)
+
+  expected_nonrepeat_cols <- c(
+    "record_id",
+    "redcap_event",
+    "redcap_event_instance",
+    "form_status_complete"
+  )
+
+  expected_repeat_cols <- c(
+    "record_id",
+    "redcap_event",
+    "redcap_form_instance",
+    "form_status_complete"
+  )
+
+  expect_true(all(expected_nonrepeat_cols %in% names(nonrepeat_out)))
+  expect_s3_class(nonrepeat_out, "tbl")
+  expect_true(nrow(nonrepeat_out) > 0)
+
+  expect_true(all(expected_repeat_cols %in% names(repeat_out)))
+  expect_s3_class(repeat_out, "tbl")
+  expect_true(nrow(repeat_out) > 0)
 })

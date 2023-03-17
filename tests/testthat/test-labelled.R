@@ -1,10 +1,10 @@
-
 test_that("make_labelled applies labels to all elements of supertibble", {
   supertbl <- tibble::tribble(
     ~redcap_data, ~redcap_metadata, ~redcap_events,
     tibble(x = letters[1:3]), tibble(field_name = "x", field_label = "X Label"), tibble(redcap_event = "event_a"),
     tibble(y = letters[1:3]), tibble(field_name = "y", field_label = "Y Label"), tibble(redcap_event = "event_b")
-  )
+  ) %>%
+    as_supertbl()
 
   out <- make_labelled(supertbl)
 
@@ -60,10 +60,13 @@ test_that("make_labelled applies all predefined labeles", {
     data_cols = NA,
     data_size = NA,
     data_na_pct = NA
-  )
+  ) %>%
+    as_supertbl()
+
 
   supertbl$redcap_data <- list(tibble::tribble(
-    ~redcap_repeat_instance,
+    ~redcap_form_instance,
+    ~redcap_event_instance,
     ~redcap_event,
     ~redcap_arm,
     ~redcap_survey_timestamp,
@@ -145,7 +148,8 @@ test_that("make_labelled applies all predefined labeles", {
   data_labs <- labelled::var_label(out$redcap_data[[1]])
 
   expected_data_labs <- list(
-    redcap_repeat_instance = "REDCap Repeat Instance",
+    redcap_form_instance = "REDCap Form Instance",
+    redcap_event_instance = "REDCap Event Instance",
     redcap_event = "REDCap Event",
     redcap_arm = "REDCap Arm",
     redcap_survey_timestamp = "REDCap Survey Timestamp",
@@ -172,7 +176,8 @@ test_that("make_labelled handles supertibble with extra columns", {
   supertbl <- tibble::tribble(
     ~redcap_form_name, ~redcap_data, ~redcap_metadata, ~extra_field,
     "form_1", tibble(x = letters[1:3]), tibble(field_name = "x", field_label = "X Label"), "extra"
-  )
+  ) %>%
+    as_supertbl()
 
   out <- make_labelled(supertbl)
 
@@ -193,7 +198,8 @@ test_that("make_labelled handles redcap_metadata tibbles of different sizes ", {
     ~redcap_form_name, ~redcap_data, ~redcap_metadata,
     "form_1", tibble(x = letters[1:3]), tibble(field_name = "x", field_label = "X Label"),
     "form_2", tibble(y = letters[1:3]), tibble(field_name = "y", field_label = "Y Label", some_extra_metadata = "123")
-  )
+  ) %>%
+    as_supertbl()
 
   out <- make_labelled(supertbl)
 
@@ -220,7 +226,8 @@ test_that("make_labelled handles supertibbles with NULL redcap_events", {
     ~redcap_data, ~redcap_metadata, ~redcap_events,
     tibble(x = letters[1:3]), tibble(field_name = "x", field_label = "X Label"), tibble(redcap_event = "event_a"),
     tibble(y = letters[1:3]), tibble(field_name = "y", field_label = "Y Label"), NULL
-  )
+  ) %>%
+    as_supertbl()
 
   out <- make_labelled(supertbl)
 
@@ -245,7 +252,8 @@ test_that("make_labelled accepts all valid input types to format_labels", {
   supertbl <- tibble::tribble(
     ~redcap_data, ~redcap_metadata,
     tibble(x = letters[1:3]), tibble(field_name = "x", field_label = "X Label")
-  )
+  ) %>%
+    as_supertbl()
 
   # NULL
   out <- make_labelled(supertbl, format_labels = NULL)
@@ -285,4 +293,24 @@ test_that("make_labelled accepts all valid input types to format_labels", {
   # unsupported
   make_labelled(supertbl, format_labels = 1) %>%
     expect_error(class = "unresolved_formatter")
+})
+
+test_that("make_labelled errors with bad inputs", {
+  # Input to format_labels is tested above
+
+  expect_error(make_labelled(123), class = "check_supertbl")
+
+  missing_col_supertbl <- tibble(redcap_data = list()) %>%
+    as_supertbl()
+  missing_list_col_supertbl <- tibble(redcap_data = list(), redcap_metadata = 123) %>%
+    as_supertbl()
+
+  expect_error(make_labelled(missing_col_supertbl), class = "missing_req_cols")
+  expect_error(make_labelled(missing_list_col_supertbl), class = "missing_req_list_cols")
+})
+
+test_that("make_labelled preserves S3 class", {
+  out <- make_labelled(superheroes_supertbl)
+
+  expect_s3_class(out, "redcap_supertbl")
 })

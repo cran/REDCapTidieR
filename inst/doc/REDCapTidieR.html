@@ -1627,7 +1627,7 @@ that contains all the data from your project</a>, you get to work with a
 set of <a href="glossary.html#tidy">tidy</a> <a href="glossary.html#tibble">tibbles</a>, one for each REDCap <a href="glossary.html#instrument">instrument</a>.</p>
 <div id="case-study-the-superhero-database" class="section level2">
 <h2>Case Study: The Superhero Database</h2>
-<p>Let’s look at a REDCap database that has information about some 734
+<p>Let’s look at a REDCap project that has information about some 734
 superheroes, derived from the <a href="https://www.superherodb.com/">Superhero Database</a>.</p>
 <p>Here is a screenshot of the REDCap Record Status Dashboard of this
 database. It has two instruments, <strong>Heroes Information</strong>
@@ -1661,7 +1661,7 @@ tibble.</p>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  rmarkdown<span class="sc">::</span><span class="fu">paged_table</span>()</span></code></pre></div>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["redcap_form_name"],"name":[1],"type":["chr"],"align":["left"]},{"label":["redcap_form_label"],"name":[2],"type":["chr"],"align":["left"]},{"label":["redcap_data"],"name":[3],"type":["list"],"align":["right"]},{"label":["redcap_metadata"],"name":[4],"type":["list"],"align":["right"]},{"label":["structure"],"name":[5],"type":["chr"],"align":["left"]},{"label":["data_rows"],"name":[6],"type":["int"],"align":["right"]},{"label":["data_cols"],"name":[7],"type":["int"],"align":["right"]},{"label":["data_size"],"name":[8],"type":["lbstr_by"],"align":["right"]},{"label":["data_na_pct"],"name":[9],"type":["formttbl"],"align":["right"]}],"data":[{"1":"heroes_information","2":"Heroes Information","3":"<tibble[,12]>","4":"<tibble[,16]>","5":"nonrepeating","6":"734","7":"12","8":"123.24 kB","9":"0.23%"},{"1":"super_hero_powers","2":"Super Hero Powers","3":"<tibble[,4]>","4":"<tibble[,16]>","5":"repeating","6":"5966","7":"4","8":"180.21 kB","9":"0%"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["redcap_form_name"],"name":[1],"type":["chr"],"align":["left"]},{"label":["redcap_form_label"],"name":[2],"type":["chr"],"align":["left"]},{"label":["redcap_data"],"name":[3],"type":["list"],"align":["right"]},{"label":["redcap_metadata"],"name":[4],"type":["list"],"align":["right"]},{"label":["structure"],"name":[5],"type":["chr"],"align":["left"]},{"label":["data_rows"],"name":[6],"type":["int"],"align":["right"]},{"label":["data_cols"],"name":[7],"type":["int"],"align":["right"]},{"label":["data_size"],"name":[8],"type":["lbstr_by"],"align":["right"]},{"label":["data_na_pct"],"name":[9],"type":["formttbl"],"align":["right"]}],"data":[{"1":"heroes_information","2":"Heroes Information","3":"<tibble[,12]>","4":"<tibble[,17]>","5":"nonrepeating","6":"734","7":"12","8":"123.24 kB","9":"0.23%"},{"1":"super_hero_powers","2":"Super Hero Powers","3":"<tibble[,4]>","4":"<tibble[,17]>","5":"repeating","6":"5966","7":"4","8":"180.21 kB","9":"0%"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 <p>You can see that the tibble that <code>read_redcap()</code> returned
@@ -1709,9 +1709,9 @@ represents a superhero, identified by their <code>record_id</code>.</p>
 <p>In the <code>super_hero_powers</code> data tibble, each row
 represents a superpower of a specific hero. Each row is identified by
 the combination of <code>record_id</code> and
-<code>redcap_repeat_instance</code>. This difference in <a href="glossary.html#granularity">granularity</a> is because in REDCap
-<code>super_hero_powers</code> was designated to be a <a href="glossary.html#repeating"><strong>repeating</strong></a> instrument
-whereas <code>heroes_information</code> was designated as a <a href="glossary.html#nonrepeating"><strong>nonrepeating</strong></a>
+<code>redcap_form_instance</code>. This difference in <a href="glossary.html#granularity">granularity</a> is because
+<code>super_hero_powers</code> is a <a href="glossary.html#repeating"><strong>repeating</strong></a> instrument
+whereas <code>heroes_information</code> is a <a href="glossary.html#nonrepeating"><strong>nonrepeating</strong></a>
 instrument.</p>
 <center>
 <div class="figure">
@@ -1798,7 +1798,7 @@ behavior</a>, extracted data tibbles actually use very little additional
 memory. To demonstrate this, here we check the size of the
 <code>superheroes</code> supertibble:</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>lobstr<span class="sc">::</span><span class="fu">obj_size</span>(superheroes)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 313.50 kB</span></span></code></pre></div>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 313.91 kB</span></span></code></pre></div>
 <p>If we bind the data tibbles into the environment and then check the
 combined size of the supertibble <em>and</em> the two data tibbles we
 get the following:</p>
@@ -1806,14 +1806,14 @@ get the following:</p>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_tibbles</span>()</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>lobstr<span class="sc">::</span><span class="fu">obj_size</span>(superheroes, heroes_information, super_hero_powers)</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 313.50 kB</span></span></code></pre></div>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 313.91 kB</span></span></code></pre></div>
 <p>The same is true if we use the <code>extract_tibble()</code> or
 <code>extract_tibbles()</code> functions:</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>a <span class="ot">&lt;-</span> superheroes <span class="sc">|&gt;</span> <span class="fu">extract_tibble</span>(<span class="st">&quot;heroes_information&quot;</span>)</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>b <span class="ot">&lt;-</span> superheroes <span class="sc">|&gt;</span> <span class="fu">extract_tibbles</span>()</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>lobstr<span class="sc">::</span><span class="fu">obj_size</span>(superheroes, a, b)</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 313.69 kB</span></span></code></pre></div>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 314.10 kB</span></span></code></pre></div>
 </div>
 </div>
 <div id="adding-variable-labels-with-the-labelled-package" class="section level2">
@@ -1821,7 +1821,7 @@ get the following:</p>
 <p>REDCapTidieR integrates with the <a href="glossary.html#labelled">labelled</a> package to allow you to
 attach labels to variables in the supertibble. Variable labels can make
 data exploration easier. An increasing number of R packages support
-labelled data, including <a href="https://ggplot2.tidyverse.org/">ggplot</a> (via <a href="https://jonocarroll.github.io/ggeasy/">ggeasy</a>) and <a href="https://www.danieldsjoberg.com/gtsummary/">gtsummary</a>. The
+labelled data, including <a href="https://ggplot2.tidyverse.org/">ggplot2</a> (via <a href="https://jonocarroll.github.io/ggeasy/">ggeasy</a>) and <a href="https://www.danieldsjoberg.com/gtsummary/">gtsummary</a>. The
 RStudio Data Viewer shows variable labels below variable names.</p>
 <center>
 <div class="figure">
@@ -1873,10 +1873,11 @@ labels above.</p>
 <code>heroes_information</code> instrument</p>
 </div>
 </center>
-<p>The label for <code>name</code> doesn’t look quite right. Let’s
-remove that trailing <code>:</code>. The <code>make_labelled()</code>
-function has a <code>format_labels</code> argument that you can use to
-preprocess labels before applying them to the variables.</p>
+<p>Note that the label for <code>name</code> has a trailing colon
+<code>:</code>. This won’t look good as a variable label so let’s remove
+it. The <code>make_labelled()</code> function has a
+<code>format_labels</code> argument that you can use to preprocess
+labels before applying them to variables.</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>superheroes <span class="sc">|&gt;</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">make_labelled</span>(<span class="at">format_labels =</span> <span class="sc">~</span> <span class="fu">gsub</span>(<span class="st">&quot;:&quot;</span>, <span class="st">&quot;&quot;</span>, .)) <span class="sc">|&gt;</span></span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">bind_tibbles</span>()</span>
@@ -1884,19 +1885,19 @@ preprocess labels before applying them to the variables.</p>
 <span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>labelled<span class="sc">::</span><span class="fu">look_for</span>(heroes_information, <span class="st">&quot;hero&quot;</span>)</span>
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  pos variable label     col_type values</span></span>
 <span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  2   name     Hero name chr</span></span></code></pre></div>
-<p>Removing trailing <code>:</code> characters is a fairly common
-operation, so REDCapTidieR provides a <a href="glossary.html#format-helper">format helper function</a> that you
+<p>Removing trailing <code>:</code> characters from a field label is a
+fairly common operation, so REDCapTidieR provides a <a href="glossary.html#format-helper">format helper function</a> that you
 can pass to the <code>format_labels</code> argument:</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fmt_strip_trailing_colon</span>(<span class="st">&quot;Hero name:&quot;</span>)</span>
 <span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Hero name&quot;</span></span></code></pre></div>
 <p>To find out about other helpers included with REDCapTidieR, see
 <code>?`format-helpers`</code>.</p>
 <p>The <code>format_labels</code> argument will also accept multiple
-functions in a vector or list. You can use any function that takes a
-character vector and returns a modified character vector.
-<code>make_labelled()</code> will process the variable labels using
-these functions in the order they are supplied. In the following
-example, we remove the trailing colon with
+functions in a vector or list. You can pass any function that takes a
+character vector and returns a modified character vector to
+<code>format_labels</code>. <code>make_labelled()</code> will process
+the variable labels in the order that these functions are supplied. In
+the following example, we remove the trailing colon with
 <code>fmt_strip_trailing_colon()</code> and then make the labels lower
 case with <code>base::tolower()</code>.</p>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>superheroes <span class="sc">|&gt;</span></span>

@@ -34,7 +34,8 @@
 #' @importFrom REDCapR redcap_read_oneshot redcap_metadata_read
 #' @importFrom dplyr filter bind_rows %>% select slice
 #' @importFrom tidyselect any_of
-#' @importFrom rlang .data
+#' @importFrom rlang .data try_fetch abort current_call
+#' @importFrom cli cli_abort
 #'
 #' @param redcap_uri The
 #' URI/URL of the REDCap server (e.g.,
@@ -72,12 +73,25 @@ read_redcap <- function(redcap_uri,
                         forms = NULL,
                         export_survey_fields = TRUE,
                         suppress_redcapr_messages = TRUE) {
+  check_arg_is_character(redcap_uri, len = 1, any.missing = FALSE)
+  check_arg_is_character(token, len = 1, any.missing = FALSE)
+  check_arg_is_valid_token(token)
+  check_arg_choices(raw_or_label, choices = c("label", "raw"))
+  check_arg_is_character(forms, min.len = 1, null.ok = TRUE, any.missing = FALSE)
+  check_arg_is_logical(export_survey_fields, len = 1, any.missing = FALSE)
+  check_arg_is_logical(suppress_redcapr_messages, len = 1, any.missing = FALSE)
+
   # Load REDCap Metadata ----
-  db_metadata <- redcap_metadata_read(
-    redcap_uri = redcap_uri,
-    token = token,
-    verbose = FALSE
-  )$data %>%
+  # Capture unexpected metadata API call errors
+  db_metadata <- try_redcapr({
+    redcap_metadata_read(
+      redcap_uri = redcap_uri,
+      token = token,
+      verbose = !suppress_redcapr_messages
+    )
+  })
+
+  db_metadata <- db_metadata %>%
     filter(.data$field_type != "descriptive")
 
   # Cache unedited db_metadata to reduce dependencies on the order of edits
@@ -138,13 +152,15 @@ read_redcap <- function(redcap_uri,
 
   # Load REDCap Dataset output ----
 
-  db_data <- redcap_read_oneshot(
-    redcap_uri = redcap_uri,
-    token = token,
-    forms = forms_for_api_call,
-    export_survey_fields = export_survey_fields,
-    verbose = FALSE
-  )$data
+  db_data <- try_redcapr({
+    redcap_read_oneshot(
+      redcap_uri = redcap_uri,
+      token = token,
+      forms = forms_for_api_call,
+      export_survey_fields = export_survey_fields,
+      verbose = !suppress_redcapr_messages
+    )
+  })
 
   # Check that results were returned
   check_redcap_populated(db_data)
@@ -175,7 +191,8 @@ read_redcap <- function(redcap_uri,
         )
 
       # Drop repeating fields if there are no remaining repeating instruments
-      if (all(is.na(db_data$redcap_repeat_instrument))) {
+      # or repeat instances
+      if (all(is.na(db_data$redcap_repeat_instrument) & is.na(db_data$redcap_repeat_instance))) {
         db_data <- db_data %>%
           select(-"redcap_repeat_instrument", -"redcap_repeat_instance")
       }
@@ -206,7 +223,10 @@ read_redcap <- function(redcap_uri,
   }
 
   if (is_longitudinal) {
-    linked_arms <- link_arms(redcap_uri = redcap_uri, token = token)
+    linked_arms <- link_arms(
+      redcap_uri = redcap_uri, token = token,
+      suppress_redcapr_messages = suppress_redcapr_messages
+    )
 
     out <- clean_redcap_long(
       db_data_long = db_data,
@@ -221,13 +241,13 @@ read_redcap <- function(redcap_uri,
   }
 
   # Augment with metadata ----
-  out <- add_metadata(out, db_metadata, redcap_uri, token)
+  out <- add_metadata(out, db_metadata, redcap_uri, token, suppress_redcapr_messages)
 
   if (is_longitudinal) {
     out <- add_event_mapping(out, linked_arms)
   }
 
-  out %>%
+  out <- out %>%
     dplyr::slice(
       order(
         factor(
@@ -236,6 +256,8 @@ read_redcap <- function(redcap_uri,
         )
       )
     )
+
+  as_supertbl(out)
 }
 
 #' @title
@@ -286,6 +308,8 @@ get_fields_to_drop <- function(db_metadata, form) {
 #'
 #' @param supertbl a supertibble object to supplement with metadata
 #' @param db_metadata a REDCap metadata tibble
+#' @param suppress_redcapr_messages A logical to control whether to suppress messages
+#' from REDCapR API calls. Default `TRUE`.
 #' @inheritParams read_redcap
 #'
 #' @details This function assumes that \code{db_metadata} has been processed to
@@ -303,18 +327,23 @@ get_fields_to_drop <- function(db_metadata, form) {
 #' bind_rows filter
 #' @importFrom tidyr nest unnest_wider complete fill
 #' @importFrom tidyselect everything
-#' @importFrom rlang .data
+#' @importFrom rlang .data caller_env
 #' @importFrom purrr map
 #'
 #' @keywords internal
 
-add_metadata <- function(supertbl, db_metadata, redcap_uri, token) {
+add_metadata <- function(supertbl, db_metadata, redcap_uri, token, suppress_redcapr_messages) {
   # Get instrument labels ----
-  instrument_labs <- redcap_instruments(
-    redcap_uri,
-    token,
-    verbose = FALSE
-  )$data %>%
+  instrument_labs <- try_redcapr(
+    {
+      redcap_instruments(
+        redcap_uri,
+        token,
+        verbose = !suppress_redcapr_messages
+      )
+    },
+    call = caller_env()
+  ) %>%
     rename(
       redcap_form_label = "instrument_label",
       redcap_form_name = "instrument_name"
@@ -322,10 +351,9 @@ add_metadata <- function(supertbl, db_metadata, redcap_uri, token) {
 
   # Process metadata ----
   db_metadata <- db_metadata %>%
-    # At this stage select_choices_or_calculations has been unpacked into
-    # field_name_updated so we can drop it. Likewise, field_name has a subset
-    # of info from field_name_updated
-    select(!c("field_name", "select_choices_or_calculations")) %>%
+    # remove field_name since it has been unpacked into field_name_updated
+    # via update_field_names()
+    select(!"field_name") %>%
     rename(
       field_name = "field_name_updated",
       redcap_form_name = "form_name"
@@ -422,7 +450,7 @@ add_event_mapping <- function(supertbl, linked_arms) {
 calc_metadata_stats <- function(data) {
   excluded_fields <- c(
     get_record_id_field(data),
-    "redcap_repeat_instance", "redcap_event",
+    "redcap_form_instance", "redcap_event_instance", "redcap_event",
     "redcap_arm", "form_status_complete"
   )
 
@@ -437,4 +465,19 @@ calc_metadata_stats <- function(data) {
     data_size = obj_size(data),
     data_na_pct = percent(na_pct, digits = 2, format = "fg")
   )
+}
+
+#' @title
+#' Add supertbl S3 class
+#'
+#' @param x an object to class
+#'
+#' @return
+#' The object with `redcaptidier_supertbl` S3 class
+#'
+#' @keywords internal
+#'
+as_supertbl <- function(x) {
+  class(x) <- c("redcap_supertbl", class(x))
+  x
 }
