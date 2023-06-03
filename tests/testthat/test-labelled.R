@@ -9,42 +9,42 @@ test_that("make_labelled applies labels to all elements of supertibble", {
   out <- make_labelled(supertbl)
 
   # Main labels are applied
-  main_labs <- labelled::var_label(out)
+  main_labels <- labelled::var_label(out)
 
-  expected_main_labs <- list(
+  expected_main_labels <- list(
     redcap_data = "Data",
     redcap_metadata = "Metadata",
     redcap_events = "Events and Arms Associated with this Instrument"
   )
 
-  expect_equal(main_labs, expected_main_labs)
+  expect_equal(main_labels, expected_main_labels)
 
   # Labels are applied to both metadata tibbles
-  expected_metadata_labs <- list(
+  expected_metadata_labels <- list(
     field_name = "Variable / Field Name",
     field_label = "Field Label"
   )
 
-  metadata_labs1 <- labelled::var_label(out$redcap_metadata[[1]])
-  metadata_labs2 <- labelled::var_label(out$redcap_metadata[[2]])
+  metadata_labels1 <- labelled::var_label(out$redcap_metadata[[1]])
+  metadata_labels2 <- labelled::var_label(out$redcap_metadata[[2]])
 
-  expect_equal(metadata_labs1, expected_metadata_labs)
-  expect_equal(metadata_labs2, expected_metadata_labs)
+  expect_equal(metadata_labels1, expected_metadata_labels)
+  expect_equal(metadata_labels2, expected_metadata_labels)
 
   # Labels are applied to both data tibbles
 
-  data_labs1 <- labelled::var_label(out$redcap_data[[1]])
-  data_labs2 <- labelled::var_label(out$redcap_data[[2]])
+  data_labels1 <- labelled::var_label(out$redcap_data[[1]])
+  data_labels2 <- labelled::var_label(out$redcap_data[[2]])
 
-  expect_equal(data_labs1, list(x = "X Label"))
-  expect_equal(data_labs2, list(y = "Y Label"))
+  expect_equal(data_labels1, list(x = "X Label"))
+  expect_equal(data_labels2, list(y = "Y Label"))
 
   # Labels are applied to both event tibbles
-  event_labs1 <- labelled::var_label(out$redcap_events[[1]])
-  event_labs2 <- labelled::var_label(out$redcap_events[[2]])
+  event_labels1 <- labelled::var_label(out$redcap_events[[1]])
+  event_labels2 <- labelled::var_label(out$redcap_events[[2]])
 
-  expect_equal(event_labs1, list(redcap_event = "Event Name"))
-  expect_equal(event_labs2, list(redcap_event = "Event Name"))
+  expect_equal(event_labels1, list(redcap_event = "Event Name"))
+  expect_equal(event_labels2, list(redcap_event = "Event Name"))
 })
 
 test_that("make_labelled applies all predefined labeles", {
@@ -69,6 +69,7 @@ test_that("make_labelled applies all predefined labeles", {
     ~redcap_event_instance,
     ~redcap_event,
     ~redcap_arm,
+    ~redcap_data_access_group,
     ~redcap_survey_timestamp,
     ~redcap_survey_identifier,
     ~form_status_complete
@@ -102,9 +103,9 @@ test_that("make_labelled applies all predefined labeles", {
   out <- make_labelled(supertbl)
 
   # Check main labs
-  main_labs <- labelled::var_label(out)
+  main_labels <- labelled::var_label(out)
 
-  expected_main_labs <- list(
+  expected_main_labels <- list(
     redcap_form_name = "REDCap Instrument Name",
     redcap_form_label = "REDCap Instrument Description",
     redcap_data = "Data",
@@ -117,24 +118,24 @@ test_that("make_labelled applies all predefined labeles", {
     data_na_pct = "% of Data Missing"
   )
 
-  expect_equal(main_labs, expected_main_labs)
+  expect_equal(main_labels, expected_main_labels)
 
   # Check metadata labs
 
-  metadata_labs <- labelled::var_label(out$redcap_metadata[[1]])
+  metadata_labels <- labelled::var_label(out$redcap_metadata[[1]])
 
-  expected_metadata_labs <- list(
+  expected_metadata_labels <- list(
     field_name = "Variable / Field Name",
     field_label = "Field Label",
     field_type = "Field Type",
-    section_header = "Section Header",
+    section_header = "Section Header Prior to this Field",
     field_note = "Field Note",
     text_validation_type_or_show_slider_number = "Text Validation Type OR Show Slider Number",
-    text_validation_min = "Text Validation Min",
-    text_validation_max = "Text Validation Max",
-    identifier = "Identifier?",
+    text_validation_min = "Minimum Accepted Value for Text Validation",
+    text_validation_max = "Maximum Accepted Value for Text Validation",
+    identifier = "Is this Field an Identifier?",
     branching_logic = "Branching Logic (Show field only if...)",
-    required_field = "Required Field?",
+    required_field = "Is this Field Required?",
     custom_alignment = "Custom Alignment",
     question_number = "Question Number (surveys only)",
     matrix_group_name = "Matrix Group Name",
@@ -142,34 +143,35 @@ test_that("make_labelled applies all predefined labeles", {
     field_annotation = "Field Annotation"
   )
 
-  expect_equal(metadata_labs, expected_metadata_labs)
+  expect_equal(metadata_labels, expected_metadata_labels)
 
   # Check data labs
-  data_labs <- labelled::var_label(out$redcap_data[[1]])
+  data_labels <- labelled::var_label(out$redcap_data[[1]])
 
-  expected_data_labs <- list(
+  expected_data_labels <- list(
     redcap_form_instance = "REDCap Form Instance",
     redcap_event_instance = "REDCap Event Instance",
     redcap_event = "REDCap Event",
     redcap_arm = "REDCap Arm",
+    redcap_data_access_group = "REDCap Data Access Group",
     redcap_survey_timestamp = "REDCap Survey Timestamp",
     redcap_survey_identifier = "REDCap Survey Identifier",
     form_status_complete = "REDCap Instrument Completed?"
   )
 
-  expect_equal(data_labs, expected_data_labs)
+  expect_equal(data_labels, expected_data_labels)
 
   # Check event labs
 
-  event_labs <- labelled::var_label(out$redcap_events[[1]])
+  event_labels <- labelled::var_label(out$redcap_events[[1]])
 
-  expected_event_labs <- list(
+  expected_event_labels <- list(
     redcap_event = "Event Name",
     redcap_arm = "Arm Name",
     arm_name = "Arm Description"
   )
 
-  expect_equal(event_labs, expected_event_labs)
+  expect_equal(event_labels, expected_event_labels)
 })
 
 test_that("make_labelled handles supertibble with extra columns", {
@@ -183,14 +185,14 @@ test_that("make_labelled handles supertibble with extra columns", {
 
   labs <- labelled::var_label(out)
 
-  expected_labs <- list(
+  expected_labels <- list(
     redcap_form_name = "REDCap Instrument Name",
     redcap_data = "Data",
     redcap_metadata = "Metadata",
     extra_field = NULL
   )
 
-  expect_equal(labs, expected_labs)
+  expect_equal(labs, expected_labels)
 })
 
 test_that("make_labelled handles redcap_metadata tibbles of different sizes ", {
@@ -203,22 +205,22 @@ test_that("make_labelled handles redcap_metadata tibbles of different sizes ", {
 
   out <- make_labelled(supertbl)
 
-  base_metadata_labs <- list(
+  base_metadata_labels <- list(
     field_name = "Variable / Field Name",
     field_label = "Field Label"
   )
 
   # Second instrument has normal metadata fields plus an additional field we
   # need to label correctly
-  extra_metadata_labs <- c(
-    base_metadata_labs, list(some_extra_metadata = NULL)
+  extra_metadata_labels <- c(
+    base_metadata_labels, list(some_extra_metadata = NULL)
   )
 
-  metadata_labs1 <- labelled::var_label(out$redcap_metadata[[1]])
-  metadata_labs2 <- labelled::var_label(out$redcap_metadata[[2]])
+  metadata_labels1 <- labelled::var_label(out$redcap_metadata[[1]])
+  metadata_labels2 <- labelled::var_label(out$redcap_metadata[[2]])
 
-  expect_equal(metadata_labs1, base_metadata_labs)
-  expect_equal(metadata_labs2, extra_metadata_labs)
+  expect_equal(metadata_labels1, base_metadata_labels)
+  expect_equal(metadata_labels2, extra_metadata_labels)
 })
 
 test_that("make_labelled handles supertibbles with NULL redcap_events", {
@@ -231,11 +233,11 @@ test_that("make_labelled handles supertibbles with NULL redcap_events", {
 
   out <- make_labelled(supertbl)
 
-  event_labs1 <- labelled::var_label(out$redcap_events[[1]])
-  event_labs2 <- labelled::var_label(out$redcap_events[[2]])
+  event_labels1 <- labelled::var_label(out$redcap_events[[1]])
+  event_labels2 <- labelled::var_label(out$redcap_events[[2]])
 
-  expect_false(is.null(event_labs1))
-  expect_null(event_labs2)
+  expect_false(is.null(event_labels1))
+  expect_null(event_labels2)
 })
 
 test_that("format helpers work", {
@@ -313,4 +315,70 @@ test_that("make_labelled preserves S3 class", {
   out <- make_labelled(superheroes_supertbl)
 
   expect_s3_class(out, "redcap_supertbl")
+})
+
+test_that("make_labelled returns expected skimr labels", {
+  supertbl_skimr_meta <- make_skimr_labels() %>%
+    names() %>%
+    as_tibble() %>%
+    dplyr::rename("name" = value) %>%
+    dplyr::mutate(value = NA) %>%
+    tidyr::pivot_wider()
+
+  # Add skimr metadata to a sample supertbl
+  supertbl <- tibble::tribble(
+    ~redcap_data, ~redcap_metadata, ~redcap_events,
+    tibble(x = letters[1:3]),
+    tibble(field_name = "x", field_label = "X Label", supertbl_skimr_meta),
+    tibble(redcap_event = "event_a")
+  ) %>%
+    as_supertbl()
+
+  # Create expectations
+  out <- make_labelled(supertbl)
+
+  skimr_labels <- labelled::var_label(out$redcap_metadata[[1]])
+
+  expected_skimr_labels <- c(
+    field_name = "Variable / Field Name",
+    field_label = "Field Label",
+    skim_type = "Data Type",
+    n_missing = "Count of Missing Values",
+    complete_rate = "Proportion of Non-Missing Values",
+    AsIs.n_unique = "Count of Unique Values in AsIs",
+    AsIs.min_length = "Minimum Length of AsIs Values",
+    AsIs.max_length = "Maximum Length of AsIs Values",
+    character.min = "Shortest Value (Fewest Characters)",
+    character.max = "Longest Value (Most Characters)",
+    character.empty = "Count of Empty Values",
+    character.n_unique = "Count of Unique Values",
+    character.whitespace = "Count of Values that are all Whitespace",
+    Date.min = "Earliest",
+    Date.max = "Latest",
+    Date.median = "Median",
+    Date.n_unique = "Count of Unique Values",
+    difftime.min = "Minimum",
+    difftime.max = "Maximum",
+    difftime.median = "Median",
+    difftime.n_unique = "Count of Unique Values",
+    factor.ordered = "Is the Categorical Value Ordered?",
+    factor.n_unique = "Count of Unique Values",
+    factor.top_counts = "Most Frequent Values",
+    logical.mean = "Proportion of TRUE Values",
+    logical.count = "Count of Logical Values",
+    numeric.mean = "Mean",
+    numeric.sd = "Standard Deviation ",
+    numeric.p0 = "Minimum",
+    numeric.p25 = "25th Percentile",
+    numeric.p50 = "Median",
+    numeric.p75 = "75th Percentile",
+    numeric.p100 = "Maximum",
+    numeric.hist = "Histogram",
+    POSIXct.min = "Earliest",
+    POSIXct.max = "Latest",
+    POSIXct.median = "Median",
+    POSIXct.n_unique = "Count of Unique Values"
+  )
+
+  expect_true(all(skimr_labels %in% expected_skimr_labels))
 })

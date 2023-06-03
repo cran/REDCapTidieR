@@ -85,6 +85,19 @@ superheroes |>
 
 labelled::look_for(heroes_information)
 
+## -----------------------------------------------------------------------------
+# Extract the heroes_information metadata tibble and add metadata
+heroes_information_metadata <-
+  superheroes |>
+  add_skimr_metadata() |>
+  dplyr::select(redcap_metadata) |>
+  purrr::pluck(1, 1)
+
+# Highlight the numeric summaries created by add_skimr_metadata()
+heroes_information_metadata |>
+  dplyr::select(field_name, skim_type:complete_rate, starts_with("numeric")) |>
+  rmarkdown::paged_table()
+
 ## ---- include=FALSE-----------------------------------------------------------
 end_vignette()
 

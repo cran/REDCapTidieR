@@ -1926,6 +1926,36 @@ case with <code>base::tolower()</code>.</p>
 <span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                                                                 Unverified</span></span>
 <span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                                                                 Complete</span></span></code></pre></div>
 </div>
+<div id="adding-summary-statistics-to-the-metadata-with-the-skimr-package" class="section level2">
+<h2>Adding summary statistics to the metadata with the skimr
+package</h2>
+<p>REDCapTidieR provides the <code>add_skimr_metadata()</code> function
+to make it easy to compute summary statistics for <a href="glossary.html#field">fields</a> of the project using the <a href="https://docs.ropensci.org/skimr/">skimr</a> package. The summary
+statistics are added to <a href="glossary.html#metadata-tibble">metadata
+tibbles</a>. Below is a simple example showing some of the summaries
+including count of missing values (<code>n_missing</code>), proportion
+of non-missing values (<code>complete_rate</code>), and various numeric
+statistics:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract the heroes_information metadata tibble and add metadata</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>heroes_information_metadata <span class="ot">&lt;-</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  superheroes <span class="sc">|&gt;</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">add_skimr_metadata</span>() <span class="sc">|&gt;</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(redcap_metadata) <span class="sc">|&gt;</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  purrr<span class="sc">::</span><span class="fu">pluck</span>(<span class="dv">1</span>, <span class="dv">1</span>)</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Highlight the numeric summaries created by add_skimr_metadata()</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>heroes_information_metadata <span class="sc">|&gt;</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(field_name, skim_type<span class="sc">:</span>complete_rate, <span class="fu">starts_with</span>(<span class="st">&quot;numeric&quot;</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  rmarkdown<span class="sc">::</span><span class="fu">paged_table</span>()</span></code></pre></div>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["field_name"],"name":[1],"type":["chr"],"align":["left"]},{"label":["skim_type"],"name":[2],"type":["chr"],"align":["left"]},{"label":["n_missing"],"name":[3],"type":["int"],"align":["right"]},{"label":["complete_rate"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["numeric.mean"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["numeric.sd"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["numeric.p0"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["numeric.p25"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["numeric.p50"],"name":[9],"type":["dbl"],"align":["right"]},{"label":["numeric.p75"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["numeric.p100"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["numeric.hist"],"name":[12],"type":["chr"],"align":["left"]}],"data":[{"1":"record_id","2":"NA","3":"NA","4":"NA","5":"NA","6":"NA","7":"NA","8":"NA","9":"NA","10":"NA","11":"NA","12":"NA"},{"1":"name","2":"character","3":"0","4":"1.0000000","5":"NA","6":"NA","7":"NA","8":"NA","9":"NA","10":"NA","11":"NA","12":"NA"},{"1":"gender","2":"character","3":"0","4":"1.0000000","5":"NA","6":"NA","7":"NA","8":"NA","9":"NA","10":"NA","11":"NA","12":"NA"},{"1":"eye_color","2":"character","3":"0","4":"1.0000000","5":"NA","6":"NA","7":"NA","8":"NA","9":"NA","10":"NA","11":"NA","12":"NA"},{"1":"race","2":"character","3":"0","4":"1.0000000","5":"NA","6":"NA","7":"NA","8":"NA","9":"NA","10":"NA","11":"NA","12":"NA"},{"1":"hair_color","2":"character","3":"0","4":"1.0000000","5":"NA","6":"NA","7":"NA","8":"NA","9":"NA","10":"NA","11":"NA","12":"NA"},{"1":"height","2":"numeric","3":"0","4":"1.0000000","5":"102.25409","6":"139.6245","7":"-99","8":"-99","9":"175","10":"185","11":"975","12":"▃▇▁▁▁"},{"1":"weight","2":"numeric","3":"2","4":"0.9972752","5":"43.85519","6":"130.8237","7":"-99","8":"-99","9":"62","10":"90","11":"900","12":"▇▂▁▁▁"},{"1":"publisher","2":"character","3":"15","4":"0.9795640","5":"NA","6":"NA","7":"NA","8":"NA","9":"NA","10":"NA","11":"NA","12":"NA"},{"1":"skin_color","2":"character","3":"0","4":"1.0000000","5":"NA","6":"NA","7":"NA","8":"NA","9":"NA","10":"NA","11":"NA","12":"NA"},{"1":"alignment","2":"character","3":"0","4":"1.0000000","5":"NA","6":"NA","7":"NA","8":"NA","9":"NA","10":"NA","11":"NA","12":"NA"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>This enables quick insights into data content and supports
+exploratory data analytics. The columns added by
+<code>add_skimr_metadata()</code> can also be <a href="glossary.html#labelled">labelled</a>.</p>
+</div>
 
 
 

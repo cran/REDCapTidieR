@@ -2021,6 +2021,30 @@ variables REDCapTidieR generates from the
 <span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ adverse_event_relationship_other___other               &lt;lgl&gt; FALSE, FALSE, F…</span></span>
 <span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ adverse_event_relationship_other___none                &lt;lgl&gt; FALSE, TRUE, FA…</span></span></code></pre></div>
 </div>
+<div id="data-access-groups" class="section level2">
+<h2>Data Access Groups</h2>
+<p>Some REDCap <a href="glossary.html#project">projects</a> may use <a href="glossary.html#data-access-group">Data Access Groups</a> (DAGs) to
+assign specific user privileges and record-level access to entries
+within the <a href="glossary.html#project">project</a>. <a href="glossary.html#data-access-group">DAGs</a> are frequently used in
+multi-center <a href="glossary.html#project">projects</a> where the data
+from an individual centers needs to be isolated and protected from users
+belonging to other centers.</p>
+<p>If a project has <a href="glossary.html#data-access-group">DAGs</a>
+enabled, by default a column named <code>redcap_data_access_group</code>
+will appear in each <a href="glossary.html#data-tibble">data tibble</a>
+after the <a href="glossary.html#identifier-column">identifier
+columns</a>.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>redcap_project_with_dags <span class="ot">&lt;-</span> <span class="fu">read_redcap</span>(redcap_uri, dag_token)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>redcap_project_with_dags <span class="sc">|&gt;</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">extract_tibble</span>(<span class="st">&quot;non_repeat_form_1&quot;</span>) <span class="sc">|&gt;</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  rmarkdown<span class="sc">::</span><span class="fu">paged_table</span>()</span></code></pre></div>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":["record_id"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["redcap_data_access_group"],"name":[2],"type":["chr"],"align":["left"]},{"label":["non_repeat_form_1_txt"],"name":[3],"type":["lgl"],"align":["right"]},{"label":["form_status_complete"],"name":[4],"type":["fct"],"align":["left"]}],"data":[{"1":"1","2":"dag1","3":"NA","4":"Complete"},{"1":"2","2":"dag2","3":"NA","4":"Complete"},{"1":"3","2":"dag3","3":"NA","4":"Complete"},{"1":"4","2":"NA","3":"NA","4":"Incomplete"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
 <div id="surveys" class="section level2">
 <h2>Surveys</h2>
 <p>Instruments that are used to generate REDCap <a href="glossary.html#survey">surveys</a> generate additional <a href="glossary.html#data-column">data columns</a>:</p>
@@ -2033,22 +2057,22 @@ feature in REDCap is disabled.</p></li>
 </ul>
 <p>These columns are placed after all of the other data columns and
 prior to the <code>form_status_complete</code> column.</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>survey <span class="ot">&lt;-</span> <span class="fu">read_redcap</span>(redcap_uri, survey_token) <span class="sc">|&gt;</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">extract_tibble</span>(<span class="st">&quot;survey&quot;</span>)</span>
-<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>survey <span class="sc">|&gt;</span></span>
-<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">glimpse</span>()</span>
-<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Rows: 4</span></span>
-<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Columns: 9</span></span>
-<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ record_id                &lt;dbl&gt; 1, 2, 3, 4</span></span>
-<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ survey_yesno             &lt;lgl&gt; TRUE, FALSE, NA, NA</span></span>
-<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ survey_radio             &lt;fct&gt; Choice 1, Choice 2, NA, NA</span></span>
-<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ survey_checkbox___one    &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE</span></span>
-<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ survey_checkbox___two    &lt;lgl&gt; TRUE, TRUE, FALSE, FALSE</span></span>
-<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ survey_checkbox___three  &lt;lgl&gt; TRUE, TRUE, FALSE, FALSE</span></span>
-<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ redcap_survey_identifier &lt;lgl&gt; NA, NA, NA, NA</span></span>
-<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ redcap_survey_timestamp  &lt;dttm&gt; 2022-11-09 10:33:35, NA, NA, NA</span></span>
-<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ form_status_complete     &lt;fct&gt; Complete, Incomplete, Incomplete, Incomplete</span></span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>survey <span class="ot">&lt;-</span> <span class="fu">read_redcap</span>(redcap_uri, survey_token) <span class="sc">|&gt;</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">extract_tibble</span>(<span class="st">&quot;survey&quot;</span>)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>survey <span class="sc">|&gt;</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  dplyr<span class="sc">::</span><span class="fu">glimpse</span>()</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Rows: 4</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Columns: 9</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ record_id                &lt;dbl&gt; 1, 2, 3, 4</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ survey_yesno             &lt;lgl&gt; TRUE, FALSE, NA, NA</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ survey_radio             &lt;fct&gt; Choice 1, Choice 2, NA, NA</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ survey_checkbox___one    &lt;lgl&gt; FALSE, FALSE, FALSE, FALSE</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ survey_checkbox___two    &lt;lgl&gt; TRUE, TRUE, FALSE, FALSE</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ survey_checkbox___three  &lt;lgl&gt; TRUE, TRUE, FALSE, FALSE</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ redcap_survey_identifier &lt;lgl&gt; NA, NA, NA, NA</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ redcap_survey_timestamp  &lt;dttm&gt; 2022-11-09 10:33:35, NA, NA, NA</span></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $ form_status_complete     &lt;fct&gt; Complete, Incomplete, Incomplete, Incomplete</span></span></code></pre></div>
 </div>
 <div id="summary" class="section level2">
 <h2>Summary</h2>
@@ -2063,8 +2087,10 @@ the record ID <a href="glossary.html#field">field</a>.</li>
 columns</a> may follow the record ID column, depending on the <a href="glossary.html#structure">structure</a> of the instrument and the
 structure of the <a href="glossary.html#project">project</a> (see the
 table above).</li>
-<li>After the identifier columns, <a href="glossary.html#data-column">data columns</a> appear in the same
-order as in the REDCap instrument. True/false <a href="glossary.html#field-type">type</a> fields are converted to logical
+<li>If the <a href="glossary.html#project">project</a> has <a href="glossary.html#data-access-group">data access groups</a> enabled, a
+column identifying the data access column will follow here.</li>
+<li>Next, <a href="glossary.html#data-column">data columns</a> appear in
+the same order as in the REDCap instrument. True/false <a href="glossary.html#field-type">type</a> fields are converted to logical
 columns. Single-answer categorical fields are converted to <a href="glossary.html#factor">factor</a> columns. Multi-answer checkbox
 fields are expanded to a set of logical columns, one for each <a href="glossary.html#choice">choice</a>.</li>
 <li>If the instrument is used as a <a href="glossary.html#survey">survey</a>, the survey timestamp and

@@ -570,6 +570,7 @@ strip_html_field_embedding <- function(x) {
 #' @param call the calling environment to use in the warning message
 #'
 #' @importFrom rlang caller_env enquo try_fetch eval_tidy get_env zap cnd_muffle
+#' catch_cnd abort quo_get_expr
 #' @importFrom stringr str_detect
 #' @importFrom cli cli_abort cli_warn
 #'
@@ -655,8 +656,28 @@ try_redcapr <- function(expr, call = caller_env()) {
         "i" = "URI: `{condition$redcap_uri}`"
       )
       condition$class <- c("cannot_post", condition$class)
+    } else if (!is.null(out$outcome_message) &&
+      str_detect(out$outcome_message, "The REDCap project no longer exists because it was deleted")) {
+      condition$info <- c(
+        "!" = "The REDCap project does not exist because it was deleted.",
+        "i" = "Are you sure this is the correct API token?",
+        "i" = "API token: `{condition$token}`"
+      )
+      condition$class <- c("deleted_project", condition$class)
     } else {
       condition$class <- c("unexpected_error", condition$class)
+
+      if (!is.null(out$outcome_message)) {
+        # Throw error containing outcome message and attach that as the parent
+        # Get the name of the function called inside try_redcapr so it can be mentioned in the error message
+        calling_fn <- quo_get_expr(quo)
+        # Handle case where try_redcapr had multiline expr
+        if (inherits(calling_fn, "{")) {
+          calling_fn <- calling_fn[[2]]
+        }
+
+        condition$parent <- catch_cnd(abort(out$outcome_message, call = calling_fn))
+      }
     }
     cli_abort(
       c(condition$message, condition$info),
@@ -731,4 +752,97 @@ remove_empty_rows <- function(data, my_record_id) {
   # Filter for rows where specified columns have any non-NA data
   data %>%
     filter(if_any(all_of(data_cols), ~ !is.na(.))) # nolint: object_usage_linter
+}
+
+#' @title Determine if an object is labelled
+#'
+#' @description
+#' An internal utility function used to inform other processes of whether or
+#' not a given object has been labelled (i.e. with `make_labelled()`).
+#'
+#' @details
+#' An object is considered labelled if it has "label" attributes.
+#'
+#' @returns A boolean
+#'
+#' @param obj An object to be tested for "label" attributes
+#'
+#' @importFrom purrr some
+#'
+#' @keywords internal
+
+is_labelled <- function(obj) {
+  some(obj, function(x) !is.null(attr(x, "label")))
+}
+
+#' @title
+#' Make skimr labels from default skimr outputs
+#'
+#' @description
+#' A simple helper function that returns all default `skimr` names as formatted
+#' character vector for use in `make_lablled`
+#'
+#' @details
+#' All labels supplied are manually created and agreed upon as human-readable
+#'
+#' @return A character vector
+#'
+#' @keywords internal
+#'
+make_skimr_labels <- function() {
+  skimr_labels <- c(
+    skim_type = "Data Type",
+    n_missing = "Count of Missing Values",
+    complete_rate = "Proportion of Non-Missing Values",
+    AsIs.n_unique = "Count of Unique Values in AsIs",
+    AsIs.min_length = "Minimum Length of AsIs Values",
+    AsIs.max_length = "Maximum Length of AsIs Values",
+    character.min = "Shortest Value (Fewest Characters)",
+    character.max = "Longest Value (Most Characters)",
+    character.empty = "Count of Empty Values",
+    character.n_unique = "Count of Unique Values",
+    character.whitespace = "Count of Values that are all Whitespace",
+    Date.min = "Earliest",
+    Date.max = "Latest",
+    Date.median = "Median",
+    Date.n_unique = "Count of Unique Values",
+    difftime.min = "Minimum",
+    difftime.max = "Maximum",
+    difftime.median = "Median",
+    difftime.n_unique = "Count of Unique Values",
+    factor.ordered = "Is the Categorical Value Ordered?",
+    factor.n_unique = "Count of Unique Values",
+    factor.top_counts = "Most Frequent Values",
+    logical.mean = "Proportion of TRUE Values",
+    logical.count = "Count of Logical Values",
+    numeric.mean = "Mean",
+    numeric.sd = "Standard Deviation ",
+    numeric.p0 = "Minimum",
+    numeric.p25 = "25th Percentile",
+    numeric.p50 = "Median",
+    numeric.p75 = "75th Percentile",
+    numeric.p100 = "Maximum",
+    numeric.hist = "Histogram",
+    POSIXct.min = "Earliest",
+    POSIXct.max = "Latest",
+    POSIXct.median = "Median",
+    POSIXct.n_unique = "Count of Unique Values"
+  )
+
+  skimr_labels
+}
+
+#' @title Safely set variable labels
+#'
+#' @description
+#' A utility function for setting labels of a tibble from a named vector while
+#' accounting for labels that may not be present in the data.
+#'
+#' @returns A tibble
+#'
+#' @keywords internal
+
+safe_set_variable_labels <- function(data, labs) {
+  labs_to_keep <- intersect(names(labs), colnames(data))
+  labelled::set_variable_labels(data, !!!labs[labs_to_keep])
 }

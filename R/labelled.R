@@ -54,7 +54,7 @@ make_labelled <- function(supertbl, format_labels = NULL) {
   check_req_labelled_metadata_fields(supertbl)
 
   # Derive labels ----
-  main_labs <- c(
+  main_labels <- c(
     redcap_form_name = "REDCap Instrument Name",
     redcap_form_label = "REDCap Instrument Description",
     redcap_data = "Data",
@@ -67,18 +67,19 @@ make_labelled <- function(supertbl, format_labels = NULL) {
     data_na_pct = "% of Data Missing"
   )
 
-  metadata_labs <- c(
+  metadata_labels <- c(
     field_name = "Variable / Field Name",
     field_label = "Field Label",
     field_type = "Field Type",
-    section_header = "Section Header",
+    section_header = "Section Header Prior to this Field",
+    select_choices_or_calculations = "Choices, Calculations, or Slider Labels",
     field_note = "Field Note",
     text_validation_type_or_show_slider_number = "Text Validation Type OR Show Slider Number",
-    text_validation_min = "Text Validation Min",
-    text_validation_max = "Text Validation Max",
-    identifier = "Identifier?",
+    text_validation_min = "Minimum Accepted Value for Text Validation",
+    text_validation_max = "Maximum Accepted Value for Text Validation",
+    identifier = "Is this Field an Identifier?",
     branching_logic = "Branching Logic (Show field only if...)",
-    required_field = "Required Field?",
+    required_field = "Is this Field Required?",
     custom_alignment = "Custom Alignment",
     question_number = "Question Number (surveys only)",
     matrix_group_name = "Matrix Group Name",
@@ -87,9 +88,10 @@ make_labelled <- function(supertbl, format_labels = NULL) {
   )
 
   ## Set some predefined labels for data fields that aren't in the metadata
-  data_labs <- c( # nolint: object_usage_linter
+  data_labels <- c( # nolint: object_usage_linter
     redcap_form_instance = "REDCap Form Instance",
     redcap_event_instance = "REDCap Event Instance",
+    redcap_data_access_group = "REDCap Data Access Group",
     redcap_event = "REDCap Event",
     redcap_arm = "REDCap Arm",
     redcap_survey_timestamp = "REDCap Survey Timestamp",
@@ -97,29 +99,27 @@ make_labelled <- function(supertbl, format_labels = NULL) {
     form_status_complete = "REDCap Instrument Completed?"
   )
 
-  event_labs <- c(
+  event_labels <- c(
     redcap_event = "Event Name",
     redcap_arm = "Arm Name",
     arm_name = "Arm Description"
   )
 
-  # Apply labels ----
+  # Define skimr labels ----
 
-  # Utility function for label setting
-  # Set labels of tibble from named vector but don't fail if labels vector has
-  # variables that aren't in the data
-  safe_set_variable_labels <- function(data, labs) {
-    labs_to_keep <- intersect(names(labs), colnames(data))
-    labelled::set_variable_labels(data, !!!labs[labs_to_keep])
-  }
+  skimr_labels <- make_skimr_labels()
+
+  # Apply labels ----
 
   out <- supertbl
 
   # Label cols of each metadata tibble
+  metadata_labels <- c(metadata_labels, skimr_labels)
+
   out$redcap_metadata <- map(
     out$redcap_metadata,
     .f = safe_set_variable_labels,
-    labs = metadata_labs
+    labs = metadata_labels
   )
 
   # Label cols of each data tibble
@@ -129,11 +129,11 @@ make_labelled <- function(supertbl, format_labels = NULL) {
     out$redcap_metadata,
     .f = ~ {
       # build labels from metadata + predefined labs
-      labs <- c(.y$field_label, data_labs) %>%
+      labs <- c(.y$field_label, data_labels) %>%
         formatter()
 
       # Formatter may have wiped names so set them after
-      names(labs) <- c(.y$field_name, names(data_labs))
+      names(labs) <- c(.y$field_name, names(data_labels))
 
       # set labs
       safe_set_variable_labels(.x, labs)
@@ -145,13 +145,13 @@ make_labelled <- function(supertbl, format_labels = NULL) {
     out$redcap_events <- map(
       out$redcap_events,
       .f = safe_set_variable_labels,
-      labs = event_labs
+      labs = event_labels
     )
   }
 
   # Label main cols
   # Do this last since map removes labels from columns we map over
-  out <- safe_set_variable_labels(out, main_labs)
+  out <- safe_set_variable_labels(out, main_labels)
 
   out
 }

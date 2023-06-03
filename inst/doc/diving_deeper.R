@@ -13,7 +13,12 @@ library(REDCapTidieR)
 fake <- dir.exists("diving_deeper")
 
 creds <- REDCapTidieR:::get_credentials(
-  c("REDCAP_URI", "SUPERHEROES_REDCAP_API", "REDCAPTIDIER_DEEP_DIVE_VIGNETTE_API", "REDCAPTIDIER_CLASSIC_API"),
+  c(
+    "REDCAP_URI", "SUPERHEROES_REDCAP_API",
+    "REDCAPTIDIER_DEEP_DIVE_VIGNETTE_API",
+    "REDCAPTIDIER_CLASSIC_API",
+    "REDCAPTIDIER_DAG_API"
+  ),
   fake = fake
 )
 
@@ -21,6 +26,7 @@ redcap_uri <- creds$REDCAP_URI
 superheroes_token <- creds$SUPERHEROES_REDCAP_API
 longitudinal_token <- creds$REDCAPTIDIER_DEEP_DIVE_VIGNETTE_API
 survey_token <- creds$REDCAPTIDIER_CLASSIC_API
+dag_token <- creds$REDCAPTIDIER_DAG_API
 
 start_vignette("diving_deeper")
 
@@ -93,6 +99,13 @@ ae_grade |>
 adverse_events |>
   dplyr::select(dplyr::starts_with("adverse_event_relationship_other___")) |>
   dplyr::glimpse()
+
+## ---- warning = FALSE---------------------------------------------------------
+redcap_project_with_dags <- read_redcap(redcap_uri, dag_token)
+
+redcap_project_with_dags |>
+  extract_tibble("non_repeat_form_1") |>
+  rmarkdown::paged_table()
 
 ## ---- warning = FALSE---------------------------------------------------------
 survey <- read_redcap(redcap_uri, survey_token) |>
