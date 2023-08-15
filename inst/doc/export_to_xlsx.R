@@ -4,24 +4,16 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
+## ---- eval=!(Sys.getenv("NOT_CRAN") == "true"), include=FALSE-----------------
+#  knitr::knit_exit()
+
 ## ---- include = FALSE---------------------------------------------------------
-library(httptest)
-# Make sure REDCapTidieR is loaded so httptest can find redact.R
+# Load credentials
+redcap_uri <- Sys.getenv("REDCAP_URI")
+superheroes_token <- Sys.getenv("SUPERHEROES_REDCAP_API")
+
+## -----------------------------------------------------------------------------
 library(REDCapTidieR)
-
-# Use fake credentials if mocks exist, otherwise use real credentials to create mocks
-fake <- dir.exists("export_to_xlsx")
-
-creds <- REDCapTidieR:::get_credentials(
-  c("REDCAP_URI", "SUPERHEROES_REDCAP_API", "REDCAPTIDIER_CLASSIC_API"),
-  fake = fake
-)
-
-redcap_uri <- creds$REDCAP_URI
-superheroes_token <- creds$SUPERHEROES_REDCAP_API
-classic_token <- creds$REDCAPTIDIER_CLASSIC_API
-
-start_vignette("export_to_xlsx")
 
 ## ---- eval=FALSE--------------------------------------------------------------
 #  redcap_uri <- "https://my.institution.edu/redcap/api/"
@@ -48,7 +40,4 @@ superheroes |>
 ## ---- eval = FALSE------------------------------------------------------------
 #  supertbl |>
 #    write_redcap_xlsx(recode_logical = TRUE)
-
-## ---- include=FALSE-----------------------------------------------------------
-end_vignette()
 

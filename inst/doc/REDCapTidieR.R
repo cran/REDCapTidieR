@@ -4,18 +4,13 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
-## ---- include=FALSE-----------------------------------------------------------
-library(httptest)
-# Make sure REDCapTidieR is loaded so httptest can find redact.R
-library(REDCapTidieR)
+## ---- eval=!(Sys.getenv("NOT_CRAN") == "true"), include=FALSE-----------------
+#  knitr::knit_exit()
 
-# Use fake credentials if mocks exist, otherwise use real credentials to create mocks
-fake <- dir.exists("REDCapTidieR")
-
-redcap_uri <- REDCapTidieR:::get_credentials("REDCAP_URI", fake = fake)[[1]]
-token <- REDCapTidieR:::get_credentials("SUPERHEROES_REDCAP_API", fake = fake)[[1]]
-
-start_vignette("REDCapTidieR")
+## ---- include = FALSE---------------------------------------------------------
+# Load credentials
+redcap_uri <- Sys.getenv("REDCAP_URI")
+token <- Sys.getenv("SUPERHEROES_REDCAP_API")
 
 ## -----------------------------------------------------------------------------
 library(REDCapTidieR)
@@ -97,7 +92,4 @@ heroes_information_metadata <-
 heroes_information_metadata |>
   dplyr::select(field_name, skim_type:complete_rate, starts_with("numeric")) |>
   rmarkdown::paged_table()
-
-## ---- include=FALSE-----------------------------------------------------------
-end_vignette()
 

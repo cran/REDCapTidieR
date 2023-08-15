@@ -4,31 +4,16 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
+## ---- eval=!(Sys.getenv("NOT_CRAN") == "true"), include=FALSE-----------------
+#  knitr::knit_exit()
+
 ## ---- include = FALSE---------------------------------------------------------
-library(httptest)
-# Make sure REDCapTidieR is loaded so httptest can find redact.R
-library(REDCapTidieR)
-
-# Use fake credentials if mocks exist, otherwise use real credentials to create mocks
-fake <- dir.exists("diving_deeper")
-
-creds <- REDCapTidieR:::get_credentials(
-  c(
-    "REDCAP_URI", "SUPERHEROES_REDCAP_API",
-    "REDCAPTIDIER_DEEP_DIVE_VIGNETTE_API",
-    "REDCAPTIDIER_CLASSIC_API",
-    "REDCAPTIDIER_DAG_API"
-  ),
-  fake = fake
-)
-
-redcap_uri <- creds$REDCAP_URI
-superheroes_token <- creds$SUPERHEROES_REDCAP_API
-longitudinal_token <- creds$REDCAPTIDIER_DEEP_DIVE_VIGNETTE_API
-survey_token <- creds$REDCAPTIDIER_CLASSIC_API
-dag_token <- creds$REDCAPTIDIER_DAG_API
-
-start_vignette("diving_deeper")
+# Load credentials
+redcap_uri <- Sys.getenv("REDCAP_URI")
+superheroes_token <- Sys.getenv("SUPERHEROES_REDCAP_API")
+longitudinal_token <- Sys.getenv("REDCAPTIDIER_DEEP_DIVE_VIGNETTE_API")
+survey_token <- Sys.getenv("REDCAPTIDIER_CLASSIC_API")
+dag_token <- Sys.getenv("REDCAPTIDIER_DAG_API")
 
 ## ---- include = TRUE, message = FALSE-----------------------------------------
 superheroes_ugly <- REDCapR::redcap_read_oneshot(redcap_uri, superheroes_token)$data
@@ -113,7 +98,4 @@ survey <- read_redcap(redcap_uri, survey_token) |>
 
 survey |>
   dplyr::glimpse()
-
-## ---- include=FALSE-----------------------------------------------------------
-end_vignette()
 
