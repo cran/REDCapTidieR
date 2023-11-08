@@ -1,13 +1,13 @@
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
 
-## ---- eval=!(Sys.getenv("NOT_CRAN") == "true"), include=FALSE-----------------
+## ----eval=!(Sys.getenv("NOT_CRAN") == "true"), include=FALSE------------------
 #  knitr::knit_exit()
 
-## ---- include = FALSE---------------------------------------------------------
+## ----include = FALSE----------------------------------------------------------
 # Load credentials
 redcap_uri <- Sys.getenv("REDCAP_URI")
 token <- Sys.getenv("SUPERHEROES_REDCAP_API")
