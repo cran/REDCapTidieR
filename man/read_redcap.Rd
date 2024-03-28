@@ -12,7 +12,8 @@ read_redcap(
   export_survey_fields = NULL,
   export_data_access_groups = NULL,
   suppress_redcapr_messages = TRUE,
-  guess_max = .Machine$integer.max
+  guess_max = .Machine$integer.max,
+  allow_mixed_structure = getOption("redcaptidier.allow.mixed.structure", FALSE)
 )
 }
 \arguments{
@@ -23,9 +24,10 @@ URI/URL of the REDCap server (e.g.,
 \item{token}{The user-specific string that serves as the password for a
 project. Required.}
 
-\item{raw_or_label}{A string (either 'raw' or 'label') that specifies whether
+\item{raw_or_label}{A string (either 'raw', 'label', or 'haven') that specifies whether
 to export the raw coded values or the labels for the options of categorical
-fields. Default is 'label'.}
+fields. Default is 'label'. If 'haven' is supplied, categorical fields are converted
+to \code{haven_labelled} vectors.}
 
 \item{forms}{A character vector of REDCap instrument names that specifies
 which instruments to import. Default is \code{NULL} which imports all instruments
@@ -45,6 +47,11 @@ from REDCapR API calls. Default \code{TRUE}.}
 \item{guess_max}{A positive \link[base:numeric]{base::numeric} value
 passed to \code{\link[readr:read_delim]{readr::read_csv()}} that specifies the maximum number of records to
 use for guessing column types. Default \code{.Machine$integer.max}.}
+
+\item{allow_mixed_structure}{A logical to allow for support of mixed repeating/non-repeating
+instruments. Setting to \code{TRUE} will treat the mixed instrument's non-repeating versions
+as repeating instruments with a single instance. Applies to longitudinal projects
+only. Default \code{FALSE}. Can be set globally with \code{options(redcaptidier.allow.mixed.structure = TRUE)}.}
 }
 \value{
 A \code{tibble} in which each row represents a REDCap instrument. It

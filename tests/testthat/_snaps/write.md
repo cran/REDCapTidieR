@@ -29,18 +29,18 @@
       10               nonrepeating                 4                    9
       11                  repeating                 3                   10
       12                       <NA>              <NA>                 <NA>
-         Data size in Memory % of Data Missing Sheet #
-      2            data_size       data_na_pct Sheet #
-      3              2.28 kB              0.25       1
-      4              1.94 kB               0.5       2
-      5              2.58 kB                 0       3
-      6              7.71 kB 0.293103448275862       4
-      7              7.40 kB              0.75       5
-      8              1.78 kB                 1       6
-      9              2.06 kB                 1       7
-      10             3.73 kB 0.392857142857143       8
-      11             3.94 kB 0.142857142857143       9
-      12                <NA>              <NA>      10
+         Data size in Memory % of Data Missing                NA Sheet #
+      2            data_size       data_na_pct form_complete_pct Sheet #
+      3              2.28 kB              0.25                 0       1
+      4              1.94 kB               0.5                 0       2
+      5              2.58 kB                 0                 0       3
+      6              7.71 kB 0.293103448275862                 0       4
+      7              7.40 kB              0.75                 0       5
+      8              1.78 kB                 1                 0       6
+      9              2.06 kB                 1                 0       7
+      10             3.73 kB 0.392857142857143                 0       8
+      11             3.94 kB 0.142857142857143                 0       9
+      12                <NA>              <NA>              <NA>      10
       
       [[1]][[2]]
         Record ID Text Box Input Text Box Input REDCap Instrument Completed?
@@ -115,12 +115,12 @@
       4                  Unchecked                     Checked
       5                  Unchecked                   Unchecked
       6                  Unchecked                   Unchecked
-                                  NA    NA    NA                            NA
-      2 checkbox_multiple_2___4eeee5 yesno    NA                     signature
-      3                    Unchecked   yes FALSE signature_2022-08-02_1114.png
-      4                    Unchecked  <NA>    NA                          <NA>
-      5                    Unchecked  <NA>    NA                          <NA>
-      6                    Unchecked  <NA>    NA                          <NA>
+                                  NA    NA        NA                            NA
+      2 checkbox_multiple_2___4eeee5 yesno truefalse                     signature
+      3                    Unchecked   yes     FALSE signature_2022-08-02_1114.png
+      4                    Unchecked  <NA>      <NA>                          <NA>
+      5                    Unchecked  <NA>      <NA>                          <NA>
+      6                    Unchecked  <NA>      <NA>                          <NA>
                                NA     NA
       2                fileupload slider
       3 gas_receipt_20220729.jpeg     73
@@ -1246,73 +1246,73 @@
       67       <NA>            <NA>        <NA>            <NA>         <NA>
       68       <NA>            <NA>        <NA>            <NA>         <NA>
             Histogram Is the Categorical Value Ordered? Count of Unique Values
-      2  numeric.hist                                NA        factor.n_unique
-      3          <NA>                                NA                   <NA>
-      4          <NA>                                NA                   <NA>
-      5          <NA>                                NA                   <NA>
-      6         ▇▁▁▁▇                                NA                   <NA>
-      7         ▇▁▁▁▇                                NA                   <NA>
-      8          <NA>                                NA                   <NA>
-      9          <NA>                                NA                   <NA>
-      10         <NA>                                NA                   <NA>
-      11         <NA>                                NA                   <NA>
-      12        ▁▁▇▁▁                                NA                   <NA>
+      2  numeric.hist                    factor.ordered        factor.n_unique
+      3          <NA>                              <NA>                   <NA>
+      4          <NA>                              <NA>                   <NA>
+      5          <NA>                              <NA>                   <NA>
+      6         ▇▁▁▁▇                              <NA>                   <NA>
+      7         ▇▁▁▁▇                              <NA>                   <NA>
+      8          <NA>                              <NA>                   <NA>
+      9          <NA>                              <NA>                   <NA>
+      10         <NA>                              <NA>                   <NA>
+      11         <NA>                              <NA>                   <NA>
+      12        ▁▁▇▁▁                              <NA>                   <NA>
       13         <NA>                             FALSE                      2
       14         <NA>                             FALSE                      2
       15         <NA>                             FALSE                      0
-      16         <NA>                                NA                   <NA>
-      17         <NA>                                NA                   <NA>
-      18         <NA>                                NA                   <NA>
-      19         <NA>                                NA                   <NA>
-      20         <NA>                                NA                   <NA>
-      21         <NA>                                NA                   <NA>
-      22         <NA>                                NA                   <NA>
-      23         <NA>                                NA                   <NA>
-      24         <NA>                                NA                   <NA>
-      25         <NA>                                NA                   <NA>
-      26         <NA>                                NA                   <NA>
-      27         <NA>                                NA                   <NA>
-      28         <NA>                                NA                   <NA>
-      29         <NA>                                NA                   <NA>
-      30         <NA>                                NA                   <NA>
-      31         <NA>                                NA                   <NA>
-      32         <NA>                                NA                   <NA>
-      33         <NA>                                NA                   <NA>
-      34         <NA>                                NA                   <NA>
-      35         <NA>                                NA                   <NA>
-      36         <NA>                                NA                   <NA>
-      37        ▁▁▇▁▁                                NA                   <NA>
+      16         <NA>                              <NA>                   <NA>
+      17         <NA>                              <NA>                   <NA>
+      18         <NA>                              <NA>                   <NA>
+      19         <NA>                              <NA>                   <NA>
+      20         <NA>                              <NA>                   <NA>
+      21         <NA>                              <NA>                   <NA>
+      22         <NA>                              <NA>                   <NA>
+      23         <NA>                              <NA>                   <NA>
+      24         <NA>                              <NA>                   <NA>
+      25         <NA>                              <NA>                   <NA>
+      26         <NA>                              <NA>                   <NA>
+      27         <NA>                              <NA>                   <NA>
+      28         <NA>                              <NA>                   <NA>
+      29         <NA>                              <NA>                   <NA>
+      30         <NA>                              <NA>                   <NA>
+      31         <NA>                              <NA>                   <NA>
+      32         <NA>                              <NA>                   <NA>
+      33         <NA>                              <NA>                   <NA>
+      34         <NA>                              <NA>                   <NA>
+      35         <NA>                              <NA>                   <NA>
+      36         <NA>                              <NA>                   <NA>
+      37        ▁▁▇▁▁                              <NA>                   <NA>
       38         <NA>                             FALSE                      0
-      39         <NA>                                NA                   <NA>
-      40         <NA>                                NA                   <NA>
-      41         <NA>                                NA                   <NA>
-      42         <NA>                                NA                   <NA>
-      43         <NA>                                NA                   <NA>
-      44         <NA>                                NA                   <NA>
-      45         <NA>                                NA                   <NA>
-      46         <NA>                                NA                   <NA>
-      47         <NA>                                NA                   <NA>
-      48         <NA>                                NA                   <NA>
-      49         <NA>                                NA                   <NA>
-      50         <NA>                                NA                   <NA>
-      51         <NA>                                NA                   <NA>
-      52         <NA>                                NA                   <NA>
-      53         <NA>                                NA                   <NA>
-      54         <NA>                                NA                   <NA>
-      55         <NA>                                NA                   <NA>
-      56         <NA>                                NA                   <NA>
-      57         <NA>                                NA                   <NA>
-      58         <NA>                                NA                   <NA>
-      59         <NA>                                NA                   <NA>
+      39         <NA>                              <NA>                   <NA>
+      40         <NA>                              <NA>                   <NA>
+      41         <NA>                              <NA>                   <NA>
+      42         <NA>                              <NA>                   <NA>
+      43         <NA>                              <NA>                   <NA>
+      44         <NA>                              <NA>                   <NA>
+      45         <NA>                              <NA>                   <NA>
+      46         <NA>                              <NA>                   <NA>
+      47         <NA>                              <NA>                   <NA>
+      48         <NA>                              <NA>                   <NA>
+      49         <NA>                              <NA>                   <NA>
+      50         <NA>                              <NA>                   <NA>
+      51         <NA>                              <NA>                   <NA>
+      52         <NA>                              <NA>                   <NA>
+      53         <NA>                              <NA>                   <NA>
+      54         <NA>                              <NA>                   <NA>
+      55         <NA>                              <NA>                   <NA>
+      56         <NA>                              <NA>                   <NA>
+      57         <NA>                              <NA>                   <NA>
+      58         <NA>                              <NA>                   <NA>
+      59         <NA>                              <NA>                   <NA>
       60         <NA>                             FALSE                      2
-      61         <NA>                                NA                   <NA>
-      62         <NA>                                NA                   <NA>
-      63         <NA>                                NA                   <NA>
-      64         <NA>                                NA                   <NA>
+      61         <NA>                              <NA>                   <NA>
+      62         <NA>                              <NA>                   <NA>
+      63         <NA>                              <NA>                   <NA>
+      64         <NA>                              <NA>                   <NA>
       65         <NA>                             FALSE                      2
-      66         <NA>                                NA                   <NA>
-      67         <NA>                                NA                   <NA>
-      68         <NA>                                NA                   <NA>
+      66         <NA>                              <NA>                   <NA>
+      67         <NA>                              <NA>                   <NA>
+      68         <NA>                              <NA>                   <NA>
            Most Frequent Values Proportion of TRUE Values Count of Logical Values
       2       factor.top_counts              logical.mean           logical.count
       3                    <NA>                      <NA>                    <NA>
@@ -1589,7 +1589,7 @@
       
       [[2]]
          tab_name tab_sheet tab_ref
-      1    Table1         1  A2:H12
+      1    Table1         1  A2:I12
       2    Table2         2   A2:D6
       3    Table3         3   A2:D6
       4    Table4         4   A2:E6
@@ -1601,7 +1601,7 @@
       10  Table10        10   A2:J5
       11  Table11        11 A2:AZ68
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    tab_xml
-      1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     <table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" id="1" name="Table1" displayName="Table1" ref="A2:H12" totalsRowCount="0" totalsRowShown="0"><autoFilter ref="A2:H12"/><tableColumns count="8"><tableColumn id="1" name="redcap_form_name"/><tableColumn id="2" name="redcap_form_label"/><tableColumn id="3" name="structure"/><tableColumn id="4" name="data_rows"/><tableColumn id="5" name="data_cols"/><tableColumn id="6" name="data_size"/><tableColumn id="7" name="data_na_pct"/><tableColumn id="8" name="Sheet #"/></tableColumns><tableStyleInfo name="TableStyleLight8" showFirstColumn="0" showLastColumn="0" showRowStripes="1" showColumnStripes="0"/></table>
+      1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" id="1" name="Table1" displayName="Table1" ref="A2:I12" totalsRowCount="0" totalsRowShown="0"><autoFilter ref="A2:I12"/><tableColumns count="9"><tableColumn id="1" name="redcap_form_name"/><tableColumn id="2" name="redcap_form_label"/><tableColumn id="3" name="structure"/><tableColumn id="4" name="data_rows"/><tableColumn id="5" name="data_cols"/><tableColumn id="6" name="data_size"/><tableColumn id="7" name="data_na_pct"/><tableColumn id="8" name="form_complete_pct"/><tableColumn id="9" name="Sheet #"/></tableColumns><tableStyleInfo name="TableStyleLight8" showFirstColumn="0" showLastColumn="0" showRowStripes="1" showColumnStripes="0"/></table>
       2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" id="2" name="Table2" displayName="Table2" ref="A2:D6" totalsRowCount="0" totalsRowShown="0"><autoFilter ref="A2:D6"/><tableColumns count="4"><tableColumn id="1" name="record_id"/><tableColumn id="2" name="nonrepeat_1"/><tableColumn id="3" name="nonrepeat_2"/><tableColumn id="4" name="form_status_complete"/></tableColumns><tableStyleInfo name="TableStyleLight8" showFirstColumn="0" showLastColumn="0" showRowStripes="1" showColumnStripes="0"/></table>
       3                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" id="3" name="Table3" displayName="Table3" ref="A2:D6" totalsRowCount="0" totalsRowShown="0"><autoFilter ref="A2:D6"/><tableColumns count="4"><tableColumn id="1" name="record_id"/><tableColumn id="2" name="nonrepeat_3"/><tableColumn id="3" name="nonrepeat_4"/><tableColumn id="4" name="form_status_complete"/></tableColumns><tableStyleInfo name="TableStyleLight8" showFirstColumn="0" showLastColumn="0" showRowStripes="1" showColumnStripes="0"/></table>
       4                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    <table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" id="4" name="Table4" displayName="Table4" ref="A2:E6" totalsRowCount="0" totalsRowShown="0"><autoFilter ref="A2:E6"/><tableColumns count="5"><tableColumn id="1" name="record_id"/><tableColumn id="2" name="redcap_form_instance"/><tableColumn id="3" name="repeat_1"/><tableColumn id="4" name="repeat_2"/><tableColumn id="5" name="form_status_complete"/></tableColumns><tableStyleInfo name="TableStyleLight8" showFirstColumn="0" showLastColumn="0" showRowStripes="1" showColumnStripes="0"/></table>

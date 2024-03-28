@@ -36,9 +36,10 @@
 #' "https://server.org/apps/redcap/api/"). Required.
 #' @param token The user-specific string that serves as the password for a
 #' project. Required.
-#' @param raw_or_label A string (either 'raw' or 'label') that specifies whether
+#' @param raw_or_label A string (either 'raw', 'label', or 'haven') that specifies whether
 #' to export the raw coded values or the labels for the options of categorical
-#' fields. Default is 'label'.
+#' fields. Default is 'label'. If 'haven' is supplied, categorical fields are converted
+#' to `haven_labelled` vectors.
 #' @param forms A character vector of REDCap instrument names that specifies
 #' which instruments to import. Default is `NULL` which imports all instruments
 #' in the project.
@@ -53,6 +54,10 @@
 #' @param guess_max A positive [base::numeric] value
 #' passed to [readr::read_csv()] that specifies the maximum number of records to
 #' use for guessing column types. Default `.Machine$integer.max`.
+#' @param allow_mixed_structure A logical to allow for support of mixed repeating/non-repeating
+#' instruments. Setting to `TRUE` will treat the mixed instrument's non-repeating versions
+#' as repeating instruments with a single instance. Applies to longitudinal projects
+#' only. Default `FALSE`. Can be set globally with `options(redcaptidier.allow.mixed.structure = TRUE)`.
 #'
 #' @examples
 #' \dontrun{
@@ -75,15 +80,21 @@ read_redcap <- function(redcap_uri,
                         export_survey_fields = NULL,
                         export_data_access_groups = NULL,
                         suppress_redcapr_messages = TRUE,
-                        guess_max = .Machine$integer.max) {
+                        guess_max = .Machine$integer.max,
+                        allow_mixed_structure = getOption("redcaptidier.allow.mixed.structure", FALSE)) {
   check_arg_is_character(redcap_uri, len = 1, any.missing = FALSE)
   check_arg_is_character(token, len = 1, any.missing = FALSE)
   check_arg_is_valid_token(token)
-  check_arg_choices(raw_or_label, choices = c("label", "raw"))
+  check_arg_choices(raw_or_label, choices = c("label", "raw", "haven"))
   check_arg_is_character(forms, min.len = 1, null.ok = TRUE, any.missing = FALSE)
   check_arg_is_logical(export_survey_fields, len = 1, any.missing = FALSE, null.ok = TRUE)
   check_arg_is_logical(export_data_access_groups, len = 1, any.missing = FALSE, null.ok = TRUE)
   check_arg_is_logical(suppress_redcapr_messages, len = 1, any.missing = FALSE)
+  check_arg_is_logical(allow_mixed_structure, len = 1, any.missing = FALSE)
+
+  if (raw_or_label == "haven") {
+    check_installed("labelled", reason = "to use `read_redcap()` with `raw_or_label = 'haven'`")
+  }
 
   # Load REDCap Metadata ----
   # Capture unexpected metadata API call errors
@@ -245,8 +256,8 @@ read_redcap <- function(redcap_uri,
       filter(.data$field_name_updated %in% names(db_data))
   }
 
-  if (raw_or_label == "label") {
-    db_data <- multi_choice_to_labels(db_data, db_metadata)
+  if (raw_or_label != "raw") {
+    db_data <- multi_choice_to_labels(db_data, db_metadata, raw_or_label)
   }
 
   # Longitudinal Arms Check and Cleaning Application ----
@@ -267,7 +278,8 @@ read_redcap <- function(redcap_uri,
     out <- clean_redcap_long(
       db_data_long = db_data,
       db_metadata_long = db_metadata,
-      linked_arms = linked_arms
+      linked_arms = linked_arms,
+      allow_mixed_structure = allow_mixed_structure
     )
   } else {
     out <- clean_redcap(
@@ -417,7 +429,7 @@ add_metadata <- function(supertbl, db_metadata, redcap_uri, token, suppress_redc
     unnest_wider(summary) %>%
     relocate(
       "redcap_form_name", "redcap_form_label", "redcap_data", "redcap_metadata",
-      "structure", "data_rows", "data_cols", "data_size", "data_na_pct"
+      "structure", "data_rows", "data_cols", "data_size", "data_na_pct", "form_complete_pct"
     )
 }
 
@@ -476,24 +488,13 @@ calc_metadata_stats <- function(data) {
     is.na() %>%
     mean()
 
+  form_complete_pct <- data %>%
+    summarise(avg_complete = mean(.data$form_status_complete == 2))
+
   list(
     data_rows = nrow(data), data_cols = ncol(data),
     data_size = obj_size(data),
-    data_na_pct = percent(na_pct, digits = 2, format = "fg")
+    data_na_pct = percent(na_pct, digits = 2, format = "fg"),
+    form_complete_pct = percent(form_complete_pct, digits = 2, format = "fg")
   )
-}
-
-#' @title
-#' Add supertbl S3 class
-#'
-#' @param x an object to class
-#'
-#' @return
-#' The object with `redcaptidier_supertbl` S3 class
-#'
-#' @keywords internal
-#'
-as_supertbl <- function(x) {
-  class(x) <- c("redcap_supertbl", class(x))
-  x
 }

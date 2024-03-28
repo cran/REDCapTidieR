@@ -260,7 +260,7 @@ test_that("read_redcap returns metadata", {
   expected_cols <- c(
     "redcap_form_name", "redcap_form_label", "redcap_data", "redcap_metadata",
     "redcap_events", "structure", "data_rows", "data_cols", "data_size",
-    "data_na_pct"
+    "data_na_pct", "form_complete_pct"
   )
 
   # metadata fields exist and correctly ordered
@@ -278,6 +278,9 @@ test_that("read_redcap returns metadata", {
   expect_s3_class(out$data_size, "lobstr_bytes")
   expect_true(
     all(out$data_na_pct >= 0) && all(out$data_na_pct <= 100)
+  )
+  expect_true(
+    all(out$form_complete_pct >= 0) && all(out$form_complete_pct <= 100)
   )
 
   # check that for each tibble in out$redcap_data, all fields in the data are
@@ -620,4 +623,22 @@ test_that("read_redcap fails if DAG or survey columns are explicitly requested b
     ),
     class = "nonexistent_arg_requested"
   )
+})
+
+test_that("read_redcap handles missing data codes", {
+  out <- read_redcap(Sys.getenv("REDCAP_URI"), Sys.getenv("REDCAPTIDIER_MDC_API")) |>
+    suppressWarnings(classes = c("field_is_logical", "extra_field_values")) |>
+    extract_tibble("form_1")
+
+  # logicals are not converted to NA
+  expect_type(out$yesno, "logical")
+  expect_true(!all(is.na(out$yesno)))
+  # categoricals remove missing data codes
+  expect_factor(out$dropdown)
+  expect_true(all(is.na(out$dropdown) | out$dropdown != "UNK"))
+
+  withr::with_options(list(redcaptidier.allow.mdc = TRUE), {
+    read_redcap(Sys.getenv("REDCAP_URI"), Sys.getenv("REDCAPTIDIER_MDC_API"))
+  }) |>
+    expect_no_warning()
 })

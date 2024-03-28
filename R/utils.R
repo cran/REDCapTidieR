@@ -397,10 +397,17 @@ update_data_col_names <- function(db_data, db_metadata) {
 #'
 #' @param db_data A REDCap database object
 #' @param db_metadata A REDCap metadata object
+#' @param call call for conditions
+#' @inheritParams read_redcap
 #'
 #' @keywords internal
 
-multi_choice_to_labels <- function(db_data, db_metadata) {
+multi_choice_to_labels <- function(db_data, db_metadata, raw_or_label = "label", call = caller_env()) {
+  if (raw_or_label == "label") {
+    label_handler <- apply_labs_factor
+  } else if (raw_or_label == "haven") {
+    label_handler <- apply_labs_haven
+  }
   # form_status_complete Column Handling ----
   # Must be done before the creation of form_status_complete
   # select columns that don't appear in field_name_updated and end with
@@ -411,40 +418,20 @@ multi_choice_to_labels <- function(db_data, db_metadata) {
 
   db_data <- db_data %>%
     mutate(
-      # Change double output of raw data to character
       across(
         .cols = all_of(form_status_cols),
-        .fns = ~ as.character(.)
-      ),
-      # Map constant values to raw values
-      across(
-        .cols = all_of(form_status_cols),
-        .fns = ~ case_when(
-          . == "0" ~ "Incomplete",
-          . == "1" ~ "Unverified",
-          . == "2" ~ "Complete"
-        )
-      ),
-      # Convert to factor
-      # Map constant values to raw values
-      across(
-        .cols = all_of(form_status_cols),
-        .fns = ~ factor(
-          .,
-          levels = c("Incomplete", "Unverified", "Complete")
-        )
+        .fns = ~ label_handler(., c("0" = "Incomplete", "1" = "Unverified", "2" = "Complete"), integer(0))
       )
     )
 
 
   # Logical Column Handling ----
   # Handle columns where we change 0/1 to FALSE/TRUE (logical)
-  logical_cols <- db_metadata %>%
-    filter(.data$field_type %in% c("yesno", "truefalse", "checkbox")) %>%
-    pull(.data$field_name_updated)
+  db_data <- parse_logical_cols(db_data, db_metadata, call = call)
 
-  db_data <- db_data %>%
-    mutate(across(.cols = all_of(logical_cols), as.logical))
+  # Buffer for fields with extra field values to be populated by check_extra_field_values
+  extra_field_values <- vector("list", length = nrow(db_metadata))
+  names(extra_field_values) <- db_metadata$field_name_updated
 
   for (i in seq_len(nrow(db_metadata))) {
     # Extract metadata field name and database corresponding column name
@@ -483,15 +470,187 @@ multi_choice_to_labels <- function(db_data, db_metadata) {
         warn_stripped_text = stripped_text_flag
       )
 
+      if (!getOption("redcaptidier.allow.mdc", FALSE)) {
+        extra_field_values[i] <- check_extra_field_values(
+          db_data[[field_name]],
+          names(parse_labels_output)
+        )
+      }
+
       # Replace values from db_data$(field_name) with label values from
       # parse_labels key
-      db_data[[field_name]] <- db_data[[field_name]] %>%
-        as.character() %>%
-        recode(!!!parse_labels_output) %>%
-        factor(levels = unique(parse_labels_output))
+
+      db_data[[field_name]] <- label_handler(
+        x = db_data[[field_name]],
+        labels = parse_labels_output,
+        ptype = db_data[[field_name]]
+      )
     }
   }
+
+  check_extra_field_values_message(extra_field_values, call = call)
+
   db_data
+}
+
+#' @title
+#' Convert yesno, truefalse, and checkbox fields to logical
+#'
+#' @inheritParams multi_choice_to_labels
+#'
+#' @keywords internal
+parse_logical_cols <- function(db_data, db_metadata, call = caller_env()) {
+  logical_cols <- db_metadata %>%
+    filter(.data$field_type %in% c("yesno", "truefalse", "checkbox"))
+
+  if (nrow(logical_cols) == 0) {
+    return(db_data)
+  }
+
+  parsed <- map(db_data[logical_cols$field_name_updated], check_field_is_logical)
+
+  out <- db_data
+
+  out[logical_cols$field_name_updated] <- map(parsed, "parsed")
+
+  if (!getOption("redcaptidier.allow.mdc", FALSE)) {
+    problems <- parsed |>
+      map("problems") |>
+      discard(is.null)
+
+    if (length(problems) > 0) {
+      fields <- names(problems)
+      values <- flatten_chr(problems) |> unique()
+
+      msg <- c(
+        `!` = "{.code {fields}} {?is/are} logical but contain{?s/} non-logical values: {values}",
+        i = "These were converted to {.code NA} resulting in possible data loss",
+        i = "Does your REDCap project utilize missing data codes?",
+        i = paste(
+          "Silence this warning with {.code options(redcaptidier.allow.mdc = TRUE)} or",
+          "set {.code raw_or_label = 'raw'} to access missing data codes"
+        )
+      )
+      cli_warn(
+        msg,
+        class = c("field_is_logical", "REDCapTidieR_cond"),
+        call = call,
+        fields = fields,
+        problems = values
+      )
+    }
+  }
+
+  out
+}
+
+#' @title
+#' Apply factor labels to a vector
+#'
+#' @details
+#' Dots are needed to ignore `ptype` argument that may be passed to `apply_labs_haven`
+#'
+#'
+#' @param x a vector to label
+#' @param labels a named vector of labels in the format `c(value = label)`
+#' @param \dots unused, needed to ignore extra arguments that may be passed
+#'
+#' @return
+#' factor
+#'
+#' @keywords internal
+apply_labs_factor <- function(x, labels, ...) {
+  as.character(x) %>%
+    recode(!!!labels) %>%
+    factor(levels = unique(labels))
+}
+
+#' @title
+#' Apply haven value labels to a vector
+#'
+#' @details
+#' Assumes a check_installed() has been run for `labelled`. Since `haven` preserves the
+#' underlying data values we need to make sure the data type of the value options in the metadata matches
+#' the data type of the values in the actual data. This function accepts a prototype, usually a column
+#' from db_data, and uses `force_cast()` to do a best-effort casting of the value options in the metadata
+#' to the same data type as `ptype`. The fallback is to convert `x` and the value labels to character.
+#'
+#' @param x a vector to label
+#' @param labels a named vector of labels in the format `c(value = label)`
+#' @param ptype vector to serve as prototype for label values
+#' @param \dots unused, needed to ignore extra arguments that may be passed
+#'
+#' @return
+#' `haven_labelled` vector
+#'
+#' @keywords internal
+#'
+apply_labs_haven <- function(x, labels, ptype, ...) {
+  # set_value_labels expects labels in c(label = value) format so reverse them
+  labels <- invert_vec(labels)
+  # Try to cast values to match data type in data, catching any parsing warnings
+  cnd <- NULL
+  labels_cast <- withCallingHandlers(
+    {
+      force_cast(labels, ptype)
+    },
+    warning = function(w) {
+      cnd <<- w
+      cnd_muffle(w)
+    }
+  )
+  if (!is.null(attr(labels_cast, "problems"))) {
+    # If there was parsing problem fall back to character
+    x <- as.character(x)
+    labels_cast <- force_cast(labels, character())
+  } else if (!is.null(cnd)) {
+    # If there was some other warning we didn't mean to catch it, so re-raise
+    cli_warn(cnd)
+  }
+
+  labelled::set_value_labels(x, .labels = labels_cast)
+}
+
+#' @title
+#' Swap vector names for values
+#'
+#' @param x a vector
+#'
+#' @return
+#' Vector with names and values reversed
+#'
+#' @keywords internal
+#'
+invert_vec <- function(x) {
+  out <- names(x)
+  # If there were no names do nothing
+  if (is.null(out)) {
+    return(x)
+  }
+  names(out) <- x
+  out
+}
+
+force_cast <- function(x, ptype) {
+  ptype <- vec_ptype(ptype)
+  if (is.logical(ptype)) {
+    out <- parse_logical(x)
+  } else if (is.integer(ptype)) {
+    out <- parse_integer(x)
+  } else if (is.numeric(ptype)) {
+    out <- parse_double(x)
+  } else if (is.Date(ptype)) {
+    out <- parse_date(x)
+  } else if (is.difftime(ptype)) {
+    out <- parse_time(x)
+  } else if (is.POSIXt(ptype)) {
+    out <- parse_datetime(x)
+  } else {
+    out <- parse_character(x)
+  }
+
+  names(out) <- names(x)
+  out
 }
 
 #' @title

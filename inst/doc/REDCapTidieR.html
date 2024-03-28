@@ -1660,7 +1660,7 @@ tibble.</p>
 <span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  rmarkdown<span class="sc">::</span><span class="fu">paged_table</span>()</span></code></pre></div>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["redcap_form_name"],"name":[1],"type":["chr"],"align":["left"]},{"label":["redcap_form_label"],"name":[2],"type":["chr"],"align":["left"]},{"label":["redcap_data"],"name":[3],"type":["list"],"align":["right"]},{"label":["redcap_metadata"],"name":[4],"type":["list"],"align":["right"]},{"label":["structure"],"name":[5],"type":["chr"],"align":["left"]},{"label":["data_rows"],"name":[6],"type":["int"],"align":["right"]},{"label":["data_cols"],"name":[7],"type":["int"],"align":["right"]},{"label":["data_size"],"name":[8],"type":["lbstr_by"],"align":["right"]},{"label":["data_na_pct"],"name":[9],"type":["formttbl"],"align":["right"]}],"data":[{"1":"heroes_information","2":"Heroes Information","3":"<tibble[,12]>","4":"<tibble[,17]>","5":"nonrepeating","6":"734","7":"12","8":"123.24 kB","9":"0.23%"},{"1":"super_hero_powers","2":"Super Hero Powers","3":"<tibble[,4]>","4":"<tibble[,17]>","5":"repeating","6":"5966","7":"4","8":"180.21 kB","9":"0%"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["redcap_form_name"],"name":[1],"type":["chr"],"align":["left"]},{"label":["redcap_form_label"],"name":[2],"type":["chr"],"align":["left"]},{"label":["redcap_data"],"name":[3],"type":["list"],"align":["right"]},{"label":["redcap_metadata"],"name":[4],"type":["list"],"align":["right"]},{"label":["structure"],"name":[5],"type":["chr"],"align":["left"]},{"label":["data_rows"],"name":[6],"type":["int"],"align":["right"]},{"label":["data_cols"],"name":[7],"type":["int"],"align":["right"]},{"label":["data_size"],"name":[8],"type":["lbstr_by"],"align":["right"]},{"label":["data_na_pct"],"name":[9],"type":["formttbl"],"align":["right"]},{"label":["form_complete_pct"],"name":[10],"type":["formttbl"],"align":["right"]}],"data":[{"1":"heroes_information","2":"Heroes Information","3":"<tibble[,12]>","4":"<tibble[,17]>","5":"nonrepeating","6":"734","7":"12","8":"123.24 kB","9":"0.23%","10":"0%"},{"1":"super_hero_powers","2":"Super Hero Powers","3":"<tibble[,4]>","4":"<tibble[,17]>","5":"repeating","6":"5966","7":"4","8":"180.21 kB","9":"0%","10":"0%"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 <p>You can see that the tibble that <code>read_redcap()</code> returned
@@ -1797,7 +1797,7 @@ behavior</a>, extracted data tibbles actually use very little additional
 memory. To demonstrate this, here we check the size of the
 <code>superheroes</code> supertibble:</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>lobstr<span class="sc">::</span><span class="fu">obj_size</span>(superheroes)</span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co">#&gt; 313.91 kB</span></span></code></pre></div>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co">#&gt; 314.63 kB</span></span></code></pre></div>
 <p>If we bind the data tibbles into the environment and then check the
 combined size of the supertibble <em>and</em> the two data tibbles we
 get the following:</p>
@@ -1805,14 +1805,14 @@ get the following:</p>
 <span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="fu">bind_tibbles</span>()</span>
 <span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a></span>
 <span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>lobstr<span class="sc">::</span><span class="fu">obj_size</span>(superheroes, heroes_information, super_hero_powers)</span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt; 313.91 kB</span></span></code></pre></div>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="co">#&gt; 314.63 kB</span></span></code></pre></div>
 <p>The same is true if we use the <code>extract_tibble()</code> or
 <code>extract_tibbles()</code> functions:</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>a <span class="ot">&lt;-</span> superheroes <span class="sc">|&gt;</span> <span class="fu">extract_tibble</span>(<span class="st">&quot;heroes_information&quot;</span>)</span>
 <span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>b <span class="ot">&lt;-</span> superheroes <span class="sc">|&gt;</span> <span class="fu">extract_tibbles</span>()</span>
 <span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a></span>
 <span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>lobstr<span class="sc">::</span><span class="fu">obj_size</span>(superheroes, a, b)</span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt; 314.10 kB</span></span></code></pre></div>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt; 314.82 kB</span></span></code></pre></div>
 </div>
 </div>
 <div id="adding-variable-labels-with-the-labelled-package" class="section level2">
@@ -1842,21 +1842,36 @@ the variable labels of a tibble.</p>
 <span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="fu">bind_tibbles</span>()</span>
 <span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a></span>
 <span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>labelled<span class="sc">::</span><span class="fu">look_for</span>(heroes_information)</span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt;  pos variable             label                        col_type values    </span></span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt;  1   record_id            Record ID                    dbl                </span></span>
-<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt;  2   name                 Hero name:                   chr                </span></span>
-<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt;  3   gender               Gender                       chr                </span></span>
-<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt;  4   eye_color            Eye color                    chr                </span></span>
-<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt;  5   race                 Race                         chr                </span></span>
-<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co">#&gt;  6   hair_color           Hair color                   chr                </span></span>
-<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="co">#&gt;  7   height               Height                       dbl                </span></span>
-<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co">#&gt;  8   weight               Weight                       dbl                </span></span>
-<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">#&gt;  9   publisher            Publisher                    chr                </span></span>
-<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="co">#&gt;  10  skin_color           Skin Color                   chr                </span></span>
-<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="co">#&gt;  11  alignment            Alignment                    chr                </span></span>
-<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a><span class="co">#&gt;  12  form_status_complete REDCap Instrument Completed? fct      Incomplete</span></span>
-<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a><span class="co">#&gt;                                                                 Unverified</span></span>
-<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a><span class="co">#&gt;                                                                 Complete</span></span></code></pre></div>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt;  pos variable             label                        col_type missing</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt;  1   record_id            Record ID                    dbl      0      </span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt;  2   name                 Hero name:                   chr      0      </span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt;  3   gender               Gender                       chr      0      </span></span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt;  4   eye_color            Eye color                    chr      0      </span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt;  5   race                 Race                         chr      0      </span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co">#&gt;  6   hair_color           Hair color                   chr      0      </span></span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="co">#&gt;  7   height               Height                       dbl      0      </span></span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co">#&gt;  8   weight               Weight                       dbl      2      </span></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">#&gt;  9   publisher            Publisher                    chr      15     </span></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="co">#&gt;  10  skin_color           Skin Color                   chr      0      </span></span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="co">#&gt;  11  alignment            Alignment                    chr      0      </span></span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a><span class="co">#&gt;  12  form_status_complete REDCap Instrument Completed? fct      0      </span></span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a><span class="co">#&gt;                                                                        </span></span>
+<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a><span class="co">#&gt;                                                                        </span></span>
+<span id="cb8-21"><a href="#cb8-21" tabindex="-1"></a><span class="co">#&gt;  values    </span></span>
+<span id="cb8-22"><a href="#cb8-22" tabindex="-1"></a><span class="co">#&gt;            </span></span>
+<span id="cb8-23"><a href="#cb8-23" tabindex="-1"></a><span class="co">#&gt;            </span></span>
+<span id="cb8-24"><a href="#cb8-24" tabindex="-1"></a><span class="co">#&gt;            </span></span>
+<span id="cb8-25"><a href="#cb8-25" tabindex="-1"></a><span class="co">#&gt;            </span></span>
+<span id="cb8-26"><a href="#cb8-26" tabindex="-1"></a><span class="co">#&gt;            </span></span>
+<span id="cb8-27"><a href="#cb8-27" tabindex="-1"></a><span class="co">#&gt;            </span></span>
+<span id="cb8-28"><a href="#cb8-28" tabindex="-1"></a><span class="co">#&gt;            </span></span>
+<span id="cb8-29"><a href="#cb8-29" tabindex="-1"></a><span class="co">#&gt;            </span></span>
+<span id="cb8-30"><a href="#cb8-30" tabindex="-1"></a><span class="co">#&gt;            </span></span>
+<span id="cb8-31"><a href="#cb8-31" tabindex="-1"></a><span class="co">#&gt;            </span></span>
+<span id="cb8-32"><a href="#cb8-32" tabindex="-1"></a><span class="co">#&gt;            </span></span>
+<span id="cb8-33"><a href="#cb8-33" tabindex="-1"></a><span class="co">#&gt;  Incomplete</span></span>
+<span id="cb8-34"><a href="#cb8-34" tabindex="-1"></a><span class="co">#&gt;  Unverified</span></span>
+<span id="cb8-35"><a href="#cb8-35" tabindex="-1"></a><span class="co">#&gt;  Complete</span></span></code></pre></div>
 <p>Where did these labels come from? These labels are actually the
 REDCap <a href="glossary.html#field-label"><strong>field
 labels</strong></a> that prompt data entry in the REDCap instrument!
@@ -1882,8 +1897,8 @@ labels before applying them to variables.</p>
 <span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="fu">bind_tibbles</span>()</span>
 <span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a></span>
 <span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>labelled<span class="sc">::</span><span class="fu">look_for</span>(heroes_information, <span class="st">&quot;hero&quot;</span>)</span>
-<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt;  pos variable label     col_type values</span></span>
-<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt;  2   name     Hero name chr</span></span></code></pre></div>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt;  pos variable label     col_type missing values</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt;  2   name     Hero name chr      0</span></span></code></pre></div>
 <p>Removing trailing <code>:</code> characters from a field label is a
 fairly common operation, so REDCapTidieR provides a <a href="glossary.html#format-helper">format helper function</a> that you
 can pass to the <code>format_labels</code> argument:</p>
@@ -1909,21 +1924,36 @@ case with <code>base::tolower()</code>.</p>
 <span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>  <span class="fu">bind_tibbles</span>()</span>
 <span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a></span>
 <span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>labelled<span class="sc">::</span><span class="fu">look_for</span>(heroes_information)</span>
-<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="co">#&gt;  pos variable             label                        col_type values    </span></span>
-<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="co">#&gt;  1   record_id            record id                    dbl                </span></span>
-<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="co">#&gt;  2   name                 hero name                    chr                </span></span>
-<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="co">#&gt;  3   gender               gender                       chr                </span></span>
-<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a><span class="co">#&gt;  4   eye_color            eye color                    chr                </span></span>
-<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="co">#&gt;  5   race                 race                         chr                </span></span>
-<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="co">#&gt;  6   hair_color           hair color                   chr                </span></span>
-<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt;  7   height               height                       dbl                </span></span>
-<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt;  8   weight               weight                       dbl                </span></span>
-<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a><span class="co">#&gt;  9   publisher            publisher                    chr                </span></span>
-<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a><span class="co">#&gt;  10  skin_color           skin color                   chr                </span></span>
-<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a><span class="co">#&gt;  11  alignment            alignment                    chr                </span></span>
-<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a><span class="co">#&gt;  12  form_status_complete redcap instrument completed? fct      Incomplete</span></span>
-<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a><span class="co">#&gt;                                                                 Unverified</span></span>
-<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a><span class="co">#&gt;                                                                 Complete</span></span></code></pre></div>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="co">#&gt;  pos variable             label                        col_type missing</span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="co">#&gt;  1   record_id            record id                    dbl      0      </span></span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="co">#&gt;  2   name                 hero name                    chr      0      </span></span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="co">#&gt;  3   gender               gender                       chr      0      </span></span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a><span class="co">#&gt;  4   eye_color            eye color                    chr      0      </span></span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="co">#&gt;  5   race                 race                         chr      0      </span></span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="co">#&gt;  6   hair_color           hair color                   chr      0      </span></span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt;  7   height               height                       dbl      0      </span></span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt;  8   weight               weight                       dbl      2      </span></span>
+<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a><span class="co">#&gt;  9   publisher            publisher                    chr      15     </span></span>
+<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a><span class="co">#&gt;  10  skin_color           skin color                   chr      0      </span></span>
+<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a><span class="co">#&gt;  11  alignment            alignment                    chr      0      </span></span>
+<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a><span class="co">#&gt;  12  form_status_complete redcap instrument completed? fct      0      </span></span>
+<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a><span class="co">#&gt;                                                                        </span></span>
+<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a><span class="co">#&gt;                                                                        </span></span>
+<span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a><span class="co">#&gt;  values    </span></span>
+<span id="cb11-27"><a href="#cb11-27" tabindex="-1"></a><span class="co">#&gt;            </span></span>
+<span id="cb11-28"><a href="#cb11-28" tabindex="-1"></a><span class="co">#&gt;            </span></span>
+<span id="cb11-29"><a href="#cb11-29" tabindex="-1"></a><span class="co">#&gt;            </span></span>
+<span id="cb11-30"><a href="#cb11-30" tabindex="-1"></a><span class="co">#&gt;            </span></span>
+<span id="cb11-31"><a href="#cb11-31" tabindex="-1"></a><span class="co">#&gt;            </span></span>
+<span id="cb11-32"><a href="#cb11-32" tabindex="-1"></a><span class="co">#&gt;            </span></span>
+<span id="cb11-33"><a href="#cb11-33" tabindex="-1"></a><span class="co">#&gt;            </span></span>
+<span id="cb11-34"><a href="#cb11-34" tabindex="-1"></a><span class="co">#&gt;            </span></span>
+<span id="cb11-35"><a href="#cb11-35" tabindex="-1"></a><span class="co">#&gt;            </span></span>
+<span id="cb11-36"><a href="#cb11-36" tabindex="-1"></a><span class="co">#&gt;            </span></span>
+<span id="cb11-37"><a href="#cb11-37" tabindex="-1"></a><span class="co">#&gt;            </span></span>
+<span id="cb11-38"><a href="#cb11-38" tabindex="-1"></a><span class="co">#&gt;  Incomplete</span></span>
+<span id="cb11-39"><a href="#cb11-39" tabindex="-1"></a><span class="co">#&gt;  Unverified</span></span>
+<span id="cb11-40"><a href="#cb11-40" tabindex="-1"></a><span class="co">#&gt;  Complete</span></span></code></pre></div>
 </div>
 <div id="adding-summary-statistics-to-the-metadata-with-the-skimr-package" class="section level2">
 <h2>Adding summary statistics to the metadata with the skimr
@@ -1954,6 +1984,22 @@ statistics:</p>
 <p>This enables quick insights into data content and supports
 exploratory data analytics. The columns added by
 <code>add_skimr_metadata()</code> can also be <a href="glossary.html#labelled">labelled</a>.</p>
+</div>
+<div id="package-options" class="section level2">
+<h2>Package Options</h2>
+<p>REDCapTidieR allows you to set a couple options globally to avoid
+passing extra arguments to <code>read_redcap</code>.</p>
+<p>Globally allow <a href="https://chop-cgtinformatics.github.io/REDCapTidieR/articles/diving_deeper.html#mixed-structure-instruments">mixed
+structure instruments</a>:</p>
+<pre><code>options(redcaptidier.allow.mixed.structure = TRUE)</code></pre>
+<p>Globally silence warnings related to <a href="https://kb.wisc.edu/smph/informatics/page.php?id=108107">Missing
+Data Codes</a> (MDCs):</p>
+<pre><code>options(redcaptidier.allow.mdc = TRUE)</code></pre>
+<p>As of v1.1.0, REDCapTidieR has partial support for MDCs. MDCs in
+logical and categorical fields are converted to <code>NA</code> with a
+warning. MDCs in all other field types remain in the output. If you need
+greater support for MDCs, consider <a href="https://github.com/CHOP-CGTInformatics/REDCapTidieR/issues">opening
+an issue</a>!</p>
 </div>
 
 

@@ -8,8 +8,8 @@
 #' left_join mutate pull recode relocate rename row_number select slice summarise
 #' @importFrom formattable percent
 #' @importFrom lobstr obj_size
-#' @importFrom lubridate is.difftime is.period
-#' @importFrom purrr compose map map2 map_int map_lgl pluck pmap_chr some
+#' @importFrom lubridate is.difftime is.period is.POSIXt is.Date
+#' @importFrom purrr compose map map2 map_int map_lgl pluck pmap_chr some pmap discard flatten_chr
 #' @importFrom REDCapR redcap_arm_export redcap_event_instruments redcap_instruments
 #' redcap_metadata_read redcap_read_oneshot sanitize_token
 #' @importFrom rlang .data !!! abort as_closure caller_arg caller_env catch_cnd
@@ -18,11 +18,16 @@
 #' is_installed new_environment quo_get_expr try_fetch zap as_label
 #' @importFrom stringi stri_split_fixed
 #' @importFrom stringr str_detect str_replace str_replace_all str_squish str_trunc
-#' str_trim
+#' str_trim str_ends
 #' @importFrom tibble as_tibble is_tibble tibble
 #' @importFrom tidyr complete fill pivot_wider nest unnest unnest_wider
 #' @importFrom tidyselect all_of any_of ends_with eval_select everything
 #' starts_with where
+#' @importFrom vctrs vec_ptype_abbr vec_ptype
+#' @importFrom pillar tbl_sum
+#' @importFrom readr parse_logical parse_integer parse_double parse_date parse_time
+#' parse_datetime parse_character
+#' @importFrom stats na.omit
 "_PACKAGE"
 
 ## usethis namespace: start

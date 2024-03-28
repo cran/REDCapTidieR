@@ -101,48 +101,25 @@ check_user_rights <- function(db_data,
 
 
 check_repeat_and_nonrepeat <- function(db_data, call = caller_env()) {
-  # Identify columns to check for repeat/nonrepeat behavior
-  safe_cols <- c(
-    names(db_data)[1], "redcap_event_name",
-    "redcap_repeat_instrument", "redcap_repeat_instance",
-    "redcap_data_access_group"
-  )
-
-  check_cols <- setdiff(names(db_data), safe_cols)
-
-  # Set up check_data function that looks for repeating and nonrepeating
-  # behavior in a given column and returns a boolean
-  check_data <- function(db_data, check_col) {
-    # Repeating Check
-    rep <- any(!is.na(db_data[{{ check_col }}]) & !is.na(db_data["redcap_repeat_instrument"]))
-
-    # Nonrepeating Check
-    nonrep <- any(!is.na(db_data[{{ check_col }}]) & is.na(db_data["redcap_repeat_instrument"]))
-
-    rep & nonrep
-  }
-
-  # Create a simple dataframe, loop through check columns and append
-  # dataframe with column being checked and the output of check_data
-  out <- data.frame()
-  for (i in seq_along(check_cols)) {
-    rep_and_nonrep <- db_data %>%
-      check_data(check_col = check_cols[i])
-
-    field <- check_cols[i]
-
-    out <- rbind(out, data.frame(field, rep_and_nonrep))
-    out
-  }
+  out <- get_mixed_structure_fields(db_data = db_data)
 
   # Filter for violations
   out <- out %>%
-    filter(rep_and_nonrep)
+    filter(.data$rep_and_nonrep)
 
   # Produce error message if violations detected
   if (nrow(out) > 0) {
-    cli_abort(c("x" = "Instrument{?s} detected that ha{?s/ve} both repeating and
-      nonrepeating instances defined in the project: {out$field}"),
+    cli_abort(
+      c(
+        "x" = "Instrument{?s} detected that ha{?s/ve} both repeating and
+      nonrepeating instances defined in the project: {out$field}",
+        "i" = paste0(
+          "Set {.code allow_mixed_structure} to {.code TRUE} to override. ",
+          "See ",
+          "{.href [Mixed Structure Instruments](https://chop-cgtinformatics.github.io/REDCapTidieR/articles/diving_deeper.html#mixed-structure-instruments)} ", # nolint line_length_linter
+          "for more information."
+        )
+      ),
       class = c("repeat_nonrepeat_instrument", "REDCapTidieR_cond"),
       call = call
     )
@@ -599,4 +576,86 @@ check_file_exists <- function(file, overwrite, call = caller_env()) {
       call = call
     )
   }
+}
+
+#' @title
+#' Parse logical field and compile data for warning if parsing errors occurred
+#'
+#' @param x vector to parse
+#'
+#' @keywords internal
+check_field_is_logical <- function(x) {
+  out <- list(parsed = NULL, problems = NULL)
+  # If already logical just return it
+  if (is.logical(x)) {
+    out$parsed <- x
+    return(out)
+  }
+  # Parse
+  cnd <- NULL
+  out$parsed <- withCallingHandlers(
+    {
+      parse_logical(as.character(x))
+    },
+    warning = function(w) {
+      cnd <<- w
+      cnd_muffle(w)
+    }
+  )
+  # Check for parsing failures and warn if found
+  probs <- attr(out$parsed, "problems")
+  if (!is.null(probs)) {
+    if (!getOption("redcaptidier.allow.mdc", FALSE)) {
+      out$problems <- unique(probs$actual)
+    }
+    attr(out$parsed, "problems") <- NULL
+  } else if (!is.null(cnd)) {
+    # If there was some other warning we didn't mean to catch it, so re-raise
+    cli_warn(cnd)
+  }
+  out
+}
+
+#' @title
+#' Check data field for field values not in metadata
+#'
+#' @param x data field
+#' @param values expected field values
+#'
+#' @keywords internal
+check_extra_field_values <- function(x, values) {
+  extra_vals <- setdiff(as.character(x), values) |> na.omit()
+  if (length(extra_vals) == 0) {
+    return(NULL)
+  }
+  as.character(extra_vals)
+}
+
+check_extra_field_values_message <- function(extra_field_values, call = caller_env()) {
+  extra_field_values <- extra_field_values |>
+    discard(is.null)
+
+  if (length(extra_field_values) == 0) {
+    return(NULL)
+  }
+
+  fields <- names(extra_field_values)
+  values <- flatten_chr(extra_field_values) |> unique()
+
+  msg <- c(
+    `!` = "{.code {fields}} contain{?s/} values with no labels: {values}",
+    i = "These were converted to {.code NA} resulting in possible data loss",
+    i = "Does your REDCap project utilize missing data codes?",
+    i = paste(
+      "Silence this warning with {.code options(redcaptidier.allow.mdc = TRUE)} or",
+      "set {.code raw_or_label = 'raw'} to access missing data codes"
+    )
+  )
+  cli_warn(
+    msg,
+    class = c("extra_field_values", "REDCapTidieR_cond"),
+    call = call,
+    fields = fields,
+    values = values
+  )
 }
