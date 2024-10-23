@@ -80,12 +80,13 @@ clean_redcap_long <- function(db_data_long,
     has_mixed_structure_forms <- FALSE # nolint: object_usage_linter
 
     mixed_structure_ref <- data.frame()
-
     if (allow_mixed_structure) {
       # Retrieve mixed structure fields and forms in reference df
       mixed_structure_ref <- get_mixed_structure_fields(db_data_long) %>%
         filter(.data$rep_and_nonrep & !str_ends(.data$field_name, "_form_complete")) %>%
-        left_join(db_metadata_long %>% select("field_name", "form_name"),
+        left_join(
+          db_metadata_long %>%
+            select("field_name", "form_name"),
           by = "field_name"
         )
 
@@ -319,7 +320,10 @@ distill_repeat_table_long <- function(form_name,
   db_data_long <- db_data_long %>%
     add_partial_keys(var = .data$redcap_event_name) %>%
     filter(
-      !is.na(.data$redcap_form_instance) &
+      (
+        !is.na(.data$redcap_form_instance) |
+          if_any(matches("redcap_event_instance"), ~ !is.na(.))
+      ) &
         .data$redcap_repeat_instrument == my_form
     )
 
@@ -399,17 +403,67 @@ distill_repeat_table_long <- function(form_name,
 
 convert_mixed_instrument <- function(db_data_long, mixed_structure_ref) {
   for (i in seq_len(nrow(mixed_structure_ref))) {
-    field <- mixed_structure_ref$field_name[i]
-    form <- mixed_structure_ref$form_name[i]
+    field <- mixed_structure_ref$field_name[i] # nolint: object_usage_linter
+    form <- mixed_structure_ref$form_name[i] # nolint: object_usage_linter
 
-    # Create a logical mask for rows needing update
-    update_mask <- is.na(db_data_long$redcap_repeat_instance) & !is.na(db_data_long[[field]])
+    # Create an update mask column to identify which mixed structure rows need updates
+    db_data_long <- db_data_long %>%
+      mutate(
+        update_mask = case_when(
+          # repeat separately instances
+          !is.na(!!as.symbol(field)) &
+            is.na(.data$redcap_repeat_instance) ~ TRUE,
+          # repeat together instances
+          !is.na(!!as.symbol(field)) &
+            !is.na(.data$redcap_repeat_instance) &
+            is.na(.data$redcap_repeat_instrument) ~ TRUE,
+          TRUE ~ FALSE
+        )
+      )
 
-    # Update redcap_repeat_instance
-    db_data_long$redcap_repeat_instance <- if_else(update_mask, 1, db_data_long$redcap_repeat_instance)
+    repeat_together_present <- any(
+      is.na(db_data_long$redcap_repeat_instrument) &
+        !is.na(db_data_long$redcap_repeat_instance)
+    )
 
-    # Update redcap_repeat_instrument
-    db_data_long$redcap_repeat_instrument <- if_else(update_mask, form, db_data_long$redcap_repeat_instrument)
+    if (!"redcap_event_instance" %in% names(db_data_long) && repeat_together_present) {
+      db_data_long <- db_data_long %>%
+        mutate(
+          redcap_event_instance = NA
+        ) %>%
+        relocate(.data$redcap_event_instance, .after = .data$redcap_repeat_instance)
+    }
+
+    if (repeat_together_present) {
+      db_data_long <- db_data_long %>%
+        mutate(
+          redcap_event_instance = case_when(
+            # Shift form instances to even instances for repeat-together types
+            update_mask & is.na(redcap_repeat_instrument) ~ redcap_repeat_instance,
+            # Otherwise
+            TRUE ~ redcap_event_instance
+          )
+        )
+    }
+
+    # Assign update data based on rules below
+    db_data_long <- db_data_long %>%
+      mutate(
+        redcap_repeat_instance = case_when(
+          # Add single instance repeat event instance vals when none exist
+          # This handles nonrepeating data in events set to repeat separately
+          update_mask & is.na(redcap_repeat_instance) ~ 1,
+          # If repeat-together type, remove values from redcap_repeat_instance
+          # (shifted and captured in redcap_event_instance)
+          update_mask & is.na(redcap_repeat_instrument) ~ NA,
+          TRUE ~ .data$redcap_repeat_instance
+        ),
+        redcap_repeat_instrument = case_when(
+          update_mask ~ form,
+          TRUE ~ .data$redcap_repeat_instrument
+        )
+      ) %>%
+      select(-.data$update_mask)
   }
 
   db_data_long

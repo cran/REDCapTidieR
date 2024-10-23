@@ -219,7 +219,10 @@ test_that("link_arms works", {
   expect_s3_class(out, "tbl")
 
   # output contains expected columns
-  expected_cols <- c("arm_num", "unique_event_name", "form", "arm_name")
+  expected_cols <- c(
+    "arm_num", "unique_event_name", "form", "arm_name",
+    "event_name", "custom_event_label", "event_id"
+  )
   expect_setequal(expected_cols, names(out))
 
   # all arms are represented in output (test redcap has 2 arms)
@@ -345,7 +348,8 @@ test_that("add_partial_keys works", {
     1, "nr_event_arm_1", NA, NA,
     1, "nr_event_arm_1", "r_instrument", 1,
     3, "nr_event_arm_1", "r_instrument", 1,
-    4, "r_event_arm_1", NA, 1
+    4, "r_event_arm_1", NA, 1,
+    5, "r_event_arm_1b", NA, 1
   )
 
   out <- test_data %>%
@@ -364,6 +368,9 @@ test_that("add_partial_keys works", {
   expect_true(all(expected_cols %in% names(out)))
   expect_s3_class(out, "data.frame")
   expect_true(nrow(out) > 0)
+
+  expected_redcap_arm_col <- c("1", "1", "1", "1", "1b")
+  expect_equal(out$redcap_arm, expected_redcap_arm_col)
 })
 
 test_that("create_repeat_instance_vars works", {
@@ -495,4 +502,39 @@ test_that("apply_labs_factor works", {
 
 test_that("force_cast converts non chr/numerics to chr", {
   expect_character(force_cast("2023-01-01", as.Date(NA)))
+})
+
+test_that("get_record_id_field works", {
+  data_tbl <- tibble::tribble(
+    ~"test_name", ~"test_value",
+    1, 2
+  )
+
+  expect_equal(get_record_id_field(data_tbl), "test_name")
+})
+
+test_that("extract_metadata_tibble works", {
+  inst_1_metadata <- tibble::tribble(
+    ~"field_name", ~"field_type",
+    "study_id", "text",
+    "text", "text",
+  )
+
+  inst_2_metadata <- tibble::tribble(
+    ~"field_name", ~"field_type",
+    "study_id", "text",
+    "calulated", "calc",
+  )
+
+  supertbl <- tibble::tribble(
+    ~"redcap_form_name", ~"redcap_metadata",
+    "inst_1", inst_1_metadata,
+    "inst_2", inst_2_metadata
+  )
+
+  class(supertbl) <- c("redcap_supertbl", class(supertbl))
+
+  out <- extract_metadata_tibble(supertbl = supertbl, redcap_form_name = "inst_1")
+
+  expect_equal(out, inst_1_metadata)
 })
