@@ -5,7 +5,7 @@ knitr::opts_chunk$set(
 )
 
 ## ----eval=!(Sys.getenv("NOT_CRAN") == "true"), include=FALSE------------------
-#  knitr::knit_exit()
+# knitr::knit_exit()
 
 ## ----include = FALSE----------------------------------------------------------
 # Load credentials

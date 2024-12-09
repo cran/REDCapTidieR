@@ -177,7 +177,6 @@ read_redcap <- function(redcap_uri,
   export_survey_fields <- ifelse(is.null(export_survey_fields), TRUE, export_survey_fields)
 
   # Load REDCap Dataset output ----
-
   db_data <- try_redcapr({
     redcap_read_oneshot(
       redcap_uri = redcap_uri,
@@ -337,25 +336,25 @@ read_redcap <- function(redcap_uri,
 #'
 #' @keywords internal
 get_fields_to_drop <- function(db_metadata, form) {
-  # Assume the first instrument in the metadata contains IDs
-  # REDCap enforces this constraints
-  record_id_field <- db_metadata$field_name[[1]]
+  # Always drop form complete field which is not in metadata but should be removed from
 
-  res <- db_metadata %>%
-    filter(.data$form_name == form) %>%
+  res <- paste0(form, "_complete")
+
+  db_metadata <- db_metadata %>%
+    filter(.data$form_name == form)
+
+  # If there are no fields in the metadata we're done
+  if (nrow(db_metadata) == 0) {
+    return(res)
+  }
+
+  # Otherwise get the additional fields
+  additional_fields <- db_metadata %>%
     # Add checkbox field names to metadata
     update_field_names() %>%
     pull(.data$field_name_updated)
 
-  # Remove identifier since we want to keep it
-  res <- setdiff(res, record_id_field)
-
-  # Add form complete field which is not in metadata but should be removed from
-  # read_redcap output
-
-  res <- c(res, paste0(form, "_complete"))
-
-  res
+  c(additional_fields, res)
 }
 
 #' @title
@@ -463,12 +462,20 @@ add_event_mapping <- function(supertbl, linked_arms, repeat_event_types) {
   event_info <- linked_arms
 
   if (!is.null(repeat_event_types)) {
+    # Preserve factor levels post-join by referencing level order from linked_arms
+    repeat_event_types$redcap_event_name <- factor(repeat_event_types$redcap_event_name,
+      levels = levels(event_info$unique_event_name)
+    )
+
     event_info <- event_info %>%
       left_join(repeat_event_types, by = c("unique_event_name" = "redcap_event_name"))
   }
 
   event_info <- event_info %>%
     add_partial_keys(.data$unique_event_name) %>%
+    mutate(
+      across(any_of("redcap_event"), ~ fct_inorder(redcap_event, ordered = TRUE))
+    ) %>%
     select(
       redcap_form_name = "form", "redcap_event", "event_name", "redcap_arm", "arm_name", any_of("repeat_type")
     ) %>%
@@ -563,5 +570,5 @@ get_repeat_event_types <- function(data) {
       is_duplicated = (duplicated(.data$redcap_event_name) | duplicated(.data$redcap_event_name, fromLast = TRUE))
     ) %>%
     filter(!.data$is_duplicated | (.data$is_duplicated & .data$repeat_type == "repeat_separate")) %>%
-    select(-.data$is_duplicated)
+    select(-"is_duplicated")
 }
