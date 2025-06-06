@@ -1,7 +1,7 @@
-f1d5de57df620d4f2456a1856f3b9bdf *DESCRIPTION
+73000b843b2b70428d94af930022a77f *DESCRIPTION
 ba704f0e96b298c82d148c5a277a1534 *LICENSE
 ccb3f2390afbf670ca78f9a266eb7e83 *NAMESPACE
-0c649ba8430babec5c09e7299ade23ad *NEWS.md
+cc1876653acdbe9c91ab69f3e27750ff *NEWS.md
 a570b7b04649e8699cfdf6e8d205e626 *R/REDCapTidieR-package.R
 2d6eef226c27a9cb708471c9ce54004f *R/bind_tibbles.R
 315bcde810298f7ecc5857ad9286ce69 *R/checks.R
@@ -12,13 +12,13 @@ d2fa2512169e060494a5a091ca7fcfb8 *R/combine_checkboxes.R
 349d12bd5964b19fbd2e2b6be4b6c0d8 *R/dev_utils.R
 045653502e0ab60f167efebeb5bf4965 *R/extract_tibble.R
 42c248c4723dafaa9078497d42e82611 *R/labelled.R
-435ff360bff1d8fc5eb6a7fa586ce417 *R/read_redcap.R
+dc203d51e98775bb0fa6bca11e541c63 *R/read_redcap.R
 d04640baa11207fb5c15f53f0a98e488 *R/skimr.R
 41c8eadabd294c425ed137b1774db630 *R/supertibble.R
-ba06623445ddd5edad6ca8b09872f1ac *R/utils.R
-7d756f29258b209c4cc9557bec9afd8d *R/write.R
+dc5691003521cf624f704f40493f85a8 *R/utils.R
+ff53aaa8f8a644b9c2dfaa1716ff2c9b *R/write.R
 a6dd93d85cf52d1099565a4e3eca19f7 *README.md
-46b5cb09e4a3e739b69df5e78ca511e5 *build/vignette.rds
+580832105546c3626af3d1a0734fb894 *build/vignette.rds
 82fbf07144e45bd447a0733a8bbb0e31 *data/superheroes_supertbl.rda
 e23a0530f142bf7233ce79a027ccdac1 *inst/WORDLIST
 2027735192fb3610d64649526ac4686f *inst/doc/REDCapTidieR.R
@@ -136,7 +136,7 @@ a03e0d6dc05f57d3d5a299d0ac5783b2 *tests/testthat/test-checks.R
 68c384ae0210986eeda963fd0c8b017e *tests/testthat/test-extract_tibble.R
 67925d21f7ace92320f5156515f97d87 *tests/testthat/test-labelled.R
 1a0f23b9a92281ed716bd44ed0643738 *tests/testthat/test-lint-free.R
-fb410a7bf8bb4c8e3bf8556a66232a55 *tests/testthat/test-read_redcap.R
+8604405f3ba2b2e97ee72f97322d4854 *tests/testthat/test-read_redcap.R
 12464fbfd76ccce73a49616e7b033d9d *tests/testthat/test-skimr.R
 8f9a16077fc8d849ec21844d3683b560 *tests/testthat/test-supertibble.R
 cd3c42b7278dc7cf36c356f5de8545e4 *tests/testthat/test-utils.R

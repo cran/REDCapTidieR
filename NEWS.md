@@ -1,3 +1,8 @@
+# REDCapTidieR 1.2.3
+
+- Fixed a bug causing `read_redcap()` to incorrectly report categorical variables with data values that don't match any options in the metadata.
+- Fixed a bug causing `read_redcap()` to fail with an unhelpful error when attempting to export DAG information for a user with insufficient DAG export privileges.
+
 # REDCapTidieR 1.2.2
 
 - Fixed a bug where, when using `raw_or_label = "label"` and requesting DAGs, only raw values for DAGs would be retrieved
