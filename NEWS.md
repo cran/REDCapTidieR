@@ -1,3 +1,8 @@
+# REDCapTidieR 1.2.4
+
+- Added an option in `combine_checkboxes()` to concatenate checkbox values when multiple are selected. (#225)
+- Fixed links to the skimr package. (#227)
+
 # REDCapTidieR 1.2.3
 
 - Fixed a bug causing `read_redcap()` to incorrectly report categorical variables with data values that don't match any options in the metadata.
