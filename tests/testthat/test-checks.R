@@ -1,22 +1,22 @@
 test_that("check_user_rights works", {
   test_data <- tibble::tribble(
-    ~record_id, ~field_1,  ~field_2,
-    1,          "1",       "2"
+    ~record_id , ~field_1 , ~field_2 ,
+             1 , "1"      , "2"
   )
 
   test_data_empty <- tibble::tribble(
-    ~record_id,
-    1
+    ~record_id ,
+             1
   )
 
   test_metadata <- tibble::tribble(
-    ~field_name_updated, ~form_name,
-    "record_id",         NA_character_,
-    "field_1",           "form_1",
-    "field_2",           "form_2",
-    "missing_field",     "missing_form",
-    "missing_field_2",   "missing_form",
-    "missing_field_3",   "missing_form2"
+    ~field_name_updated , ~form_name      ,
+    "record_id"         , NA_character_   ,
+    "field_1"           , "form_1"        ,
+    "field_2"           , "form_2"        ,
+    "missing_field"     , "missing_form"  ,
+    "missing_field_2"   , "missing_form"  ,
+    "missing_field_3"   , "missing_form2"
   )
 
   expect_warning(
@@ -32,32 +32,28 @@ test_that("check_user_rights works", {
 
 test_that("check_repeat_and_nonrepeat works", {
   test_data_longitudinal <- tibble::tribble(
-    ~record_id,  ~redcap_event_name, ~redcap_repeat_instrument, ~redcap_repeat_instance, ~combination_variable,
-    1,           "event_1",          NA,                        NA,                      "A",
-    2,           "event_2",          "combination",             1,                       "B",
-    3,           "event_3",          "combination",             2,                       "C"
+    ~record_id , ~redcap_event_name , ~redcap_repeat_instrument , ~redcap_repeat_instance , ~combination_variable ,
+             1 , "event_1"          , NA                        , NA                      , "A"                   ,
+             2 , "event_2"          , "combination"             ,                       1 , "B"                   ,
+             3 , "event_3"          , "combination"             ,                       2 , "C"
   )
 
   test_data_not_longitudinal <- tibble::tribble(
-    ~new_record_id,  ~redcap_repeat_instrument, ~redcap_repeat_instance, ~combination_variable,
-    1,               NA,                        NA,                      "A",
-    2,               "combination",             1,                       "B",
-    3,               "combination",             2,                       "C"
+    ~new_record_id , ~redcap_repeat_instrument , ~redcap_repeat_instance , ~combination_variable ,
+                 1 , NA                        , NA                      , "A"                   ,
+                 2 , "combination"             ,                       1 , "B"                   ,
+                 3 , "combination"             ,                       2 , "C"
   )
 
   test_repeating_event <- tibble::tribble(
-    ~record_id, ~redcap_repeat_instrument, ~redcap_repeat_instance, ~combination_variable,
-    1, NA, NA, "A",
-    1, NA, 1, "B",
-    2, "combination", 2, NA
+    ~record_id , ~redcap_repeat_instrument , ~redcap_repeat_instance , ~combination_variable ,
+             1 , NA                        , NA                      , "A"                   ,
+             1 , NA                        ,                       1 , "B"                   ,
+             2 , "combination"             ,                       2 , NA
   )
 
-  expect_error(check_repeat_and_nonrepeat(db_data = test_data_longitudinal),
-    class = "repeat_nonrepeat_instrument"
-  )
-  expect_error(check_repeat_and_nonrepeat(db_data = test_data_not_longitudinal),
-    class = "repeat_nonrepeat_instrument"
-  )
+  expect_error(check_repeat_and_nonrepeat(db_data = test_data_longitudinal), class = "repeat_nonrepeat_instrument")
+  expect_error(check_repeat_and_nonrepeat(db_data = test_data_not_longitudinal), class = "repeat_nonrepeat_instrument")
   expect_no_error(check_repeat_and_nonrepeat(db_data = test_repeating_event))
 })
 
@@ -77,15 +73,15 @@ test_that("check_forms_exist works", {
 test_that("check_req_labelled_metadata_fields works", {
   # Check field_name and field_label within metadata
   supertbl_no_field_name <- tibble::tribble(
-    ~redcap_data, ~redcap_metadata,
-    tibble(x = letters[1:3]), tibble(field_label = "X Label"),
-    tibble(y = letters[1:3]), tibble(field_label = "Y Label")
+    ~redcap_data             , ~redcap_metadata                ,
+    tibble(x = letters[1:3]) , tibble(field_label = "X Label") ,
+    tibble(y = letters[1:3]) , tibble(field_label = "Y Label")
   )
 
   supertbl_no_field_label <- tibble::tribble(
-    ~redcap_data, ~redcap_metadata,
-    tibble(x = letters[1:3]), tibble(field_name = "x"),
-    tibble(y = letters[1:3]), tibble(field_name = "y")
+    ~redcap_data             , ~redcap_metadata         ,
+    tibble(x = letters[1:3]) , tibble(field_name = "x") ,
+    tibble(y = letters[1:3]) , tibble(field_name = "y")
   )
 
   ## Errors when field_name is missing
@@ -141,6 +137,10 @@ test_that("checkmate wrappers work", {
   expect_error(check_arg_is_logical(123), class = "check_logical")
   expect_true(check_arg_is_logical(TRUE))
 
+  # posixct
+  expect_error(check_arg_is_posixct("2026-01-01 00:00:00"), class = "check_posixct")
+  expect_true(check_arg_is_posixct(as.POSIXct("2026-01-01 00:00:00", tz = "UTC")))
+
   # choices
   expect_error(check_arg_choices(123, choices = letters[1:3]), class = "check_choice")
   expect_true(check_arg_choices("a", choices = letters[1:3]))
@@ -150,24 +150,20 @@ test_that("checkmate wrappers work", {
   expect_true(check_arg_is_valid_token("123456789ABCDEF123456789ABCDEF01"))
 
   # extension
-  expect_warning(check_arg_is_valid_extension("temp.docx", valid_extensions = "xlsx"),
-    class = "invalid_file_extension"
-  )
-  expect_warning(check_arg_is_valid_extension("xlsx.", valid_extensions = "xlsx"),
-    class = "invalid_file_extension"
-  )
+  expect_warning(check_arg_is_valid_extension("temp.docx", valid_extensions = "xlsx"), class = "invalid_file_extension")
+  expect_warning(check_arg_is_valid_extension("xlsx.", valid_extensions = "xlsx"), class = "invalid_file_extension")
   expect_true(check_arg_is_valid_extension("temp.xlsx", valid_extensions = "xlsx"))
 })
 
 test_that("check_data_arg_exists works", {
   missing_fields <- tibble::tribble(
-    ~record_id, ~field_1,
-    1,          "1"
+    ~record_id , ~field_1 ,
+             1 , "1"
   )
 
   included_fields <- tibble::tribble(
-    ~record_id, ~redcap_data_access_group, ~redcap_survey_identifier, ~field_1,
-    1, "A", NA, "1"
+    ~record_id , ~redcap_data_access_group , ~redcap_survey_identifier , ~field_1 ,
+             1 , "A"                       , NA                        , "1"
   )
 
   expect_error(
@@ -240,10 +236,10 @@ test_that("check_field_is_logical works", {
 })
 
 test_that("check_extra_field_values works", {
-  check_extra_field_values(c(1, NA, 2), c("1", "2")) |>
+  check_extra_field_values(c(1, NA, 2), c("1", "2")) %>%
     expect_null()
 
-  check_extra_field_values(c(1, NA, 2), "1") |>
+  check_extra_field_values(c(1, NA, 2), "1") %>%
     expect_equal("2")
 })
 
@@ -278,13 +274,13 @@ test_that("check_metadata_fields_exist works", {
 
 test_that("check_fields_are_checkboxes works", {
   metadata <- tibble::tribble(
-    ~field_name, ~field_type,
-    "record_id", "text",
-    "text_field", "text",
-    "calc_field", "calc",
-    "checkbox___1", "checkbox",
-    "checkbox___2", "checkbox",
-    "checkbox___3", "checkbox"
+    ~field_name    , ~field_type ,
+    "record_id"    , "text"      ,
+    "text_field"   , "text"      ,
+    "calc_field"   , "calc"      ,
+    "checkbox___1" , "checkbox"  ,
+    "checkbox___2" , "checkbox"  ,
+    "checkbox___3" , "checkbox"
   )
 
   metadata_filtered <- metadata %>%
@@ -296,22 +292,96 @@ test_that("check_fields_are_checkboxes works", {
 
 test_that("check_equal_col_summaries works", {
   data <- tibble::tribble(
-    ~"id", ~"col1", ~"col2",
-    1, "A", "A1",
-    2, "B", "B1",
-    3, "C", "C1"
+    ~"id" , ~"col1" , ~"col2" ,
+        1 , "A"     , "A1"    ,
+        2 , "B"     , "B1"    ,
+        3 , "C"     , "C1"
   )
 
   expect_no_error(check_equal_col_summaries(data, col1, col2))
 
   error_data <- tibble::tribble(
-    ~"id", ~"col1", ~"col2",
-    1, "A", "A1",
-    2, "A", "A2",
-    3, "B", "B1",
-    4, "B", "B2"
+    ~"id" , ~"col1" , ~"col2" ,
+        1 , "A"     , "A1"    ,
+        2 , "A"     , "A2"    ,
+        3 , "B"     , "B1"    ,
+        4 , "B"     , "B2"
   )
 
   check_equal_col_summaries(error_data, col1, col2) %>%
     expect_error(class = "names_glue_multi_checkbox")
+})
+
+test_that("check_metadata_field_types works", {
+  db_data <- tibble::tibble(
+    record_id = c(1L, 2L),
+    text_field = c(TRUE, NA),
+    dropdown_field = c(TRUE, FALSE),
+    checkbox___1 = Sys.Date(),
+    file_field = c(100, 200),
+    slider_field = c("50", NA)
+  )
+
+  db_metadata <- tibble::tibble(
+    form_name = "form_a",
+    field_name = c("record_id", "text_field", "dropdown_field", "checkbox", "file_field", "slider_field"),
+    field_label = c("Record ID", "Text", "Dropdown", "Checkbox", "File", "Slider"),
+    field_type = c("text", "text", "dropdown", "checkbox", "file", "slider"),
+    select_choices_or_calculations = c(NA, NA, "1, A | 2, B", "1, Yes | 0, No", NA, NA)
+  )
+
+  cnd <- rlang::catch_cnd(
+    check_metadata_field_types(db_data, db_metadata),
+    classes = "field_type_mismatch"
+  )
+
+  expect_true(tibble::is_tibble(cnd$mismatches))
+  expect_true(all(
+    c("field_name", "field_type", "r_type", "allowed_types") %in% names(cnd$mismatches)
+  ))
+  expect_true(is.list(cnd$mismatches$allowed_types))
+  expect_true(all(vapply(cnd$mismatches$allowed_types, is.character, logical(1))))
+
+  expect_equal(
+    sort(cnd$mismatches$field_name),
+    sort(c("text_field", "dropdown_field", "checkbox___1", "file_field", "slider_field"))
+  )
+
+  ok_data <- tibble::tibble(
+    record_id = c(1L, 2L),
+    text_field = c("a", NA),
+    dropdown_field = c("1", "2"),
+    checkbox___1 = c(TRUE, FALSE),
+    slider_field = c(10, 20)
+  )
+
+  check_metadata_field_types(
+    ok_data,
+    db_metadata = tibble::tibble(
+      form_name = "form_a",
+      field_name = c("record_id", "text_field", "dropdown_field", "checkbox", "slider_field"),
+      field_label = c("Record ID", "Text", "Dropdown", "Checkbox", "Slider"),
+      field_type = c("text", "text", "dropdown", "checkbox", "slider"),
+      select_choices_or_calculations = c(NA, NA, "1, A | 2, B", "1, Yes | 0, No", NA)
+    )
+  ) %>%
+    expect_no_warning()
+})
+
+test_that("check_metadata_field_types only warns on logical for some types when non-NA is present", {
+  db_data <- tibble::tibble(
+    record_id = c(1L, 2L),
+    empty_text = c(NA, NA)
+  )
+
+  db_metadata <- tibble::tibble(
+    form_name = "form_a",
+    field_name = c("record_id", "empty_text"),
+    field_label = c("Record ID", "Empty text field"),
+    field_type = c("text", "text"),
+    select_choices_or_calculations = c(NA, NA)
+  )
+
+  check_metadata_field_types(db_data, db_metadata) %>%
+    expect_no_warning()
 })

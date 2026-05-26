@@ -1,7 +1,7 @@
 #' @keywords internal
 #' @aliases REDCapTidieR-package
 #' @importFrom checkmate assert_character assert_data_frame check_character
-#' check_choice check_environment check_logical expect_character expect_double
+#' check_choice check_environment check_logical check_posixct expect_character expect_double
 #' expect_factor expect_logical
 #' @importFrom cli cli_abort cli_fmt cli_text cli_vec cli_warn qty
 #' @importFrom dplyr %>% across bind_rows case_when filter group_by if_any if_else
@@ -13,7 +13,7 @@
 #' @importFrom lobstr obj_size
 #' @importFrom lubridate is.difftime is.period is.POSIXt is.Date
 #' @importFrom purrr compose map map2 map_int map_lgl pluck pmap_chr some pmap
-#' discard flatten_chr map2_chr reduce
+#' discard flatten_chr map_chr map2_chr reduce
 #' @importFrom REDCapR redcap_arm_export redcap_event_instruments redcap_instruments
 #' redcap_metadata_read redcap_read_oneshot sanitize_token redcap_event_read
 #' redcap_dag_read
@@ -34,7 +34,7 @@
 #' @importFrom pillar tbl_sum
 #' @importFrom readr parse_logical parse_integer parse_double parse_date parse_time
 #' parse_datetime parse_character
-#' @importFrom stats na.omit
+#' @importFrom stats na.omit setNames
 "_PACKAGE"
 
 ## usethis namespace: start

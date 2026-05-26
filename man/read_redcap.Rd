@@ -11,7 +11,10 @@ read_redcap(
   forms = NULL,
   export_survey_fields = NULL,
   export_data_access_groups = NULL,
+  datetime_range_begin = as.POSIXct(NA),
+  datetime_range_end = as.POSIXct(NA),
   suppress_redcapr_messages = TRUE,
+  col_types = NULL,
   guess_max = Inf,
   allow_mixed_structure = getOption("redcaptidier.allow.mixed.structure", FALSE)
 )
@@ -41,8 +44,23 @@ tries to determine if survey fields exist and returns them if available.}
 the data access group field. The default, \code{NULL}, tries to determine if a data
 access group field exists and returns it if available.}
 
+\item{datetime_range_begin}{To return only records that have been created or
+modified \emph{after} a given datetime, provide a
+\href{https://stat.ethz.ch/R-manual/R-devel/library/base/html/as.POSIXlt.html}{POSIXct}
+value.
+If not specified, REDCap will assume no begin time.}
+
+\item{datetime_range_end}{To return only records that have been created or
+modified \emph{before} a given datetime, provide a
+\href{https://stat.ethz.ch/R-manual/R-devel/library/base/html/as.POSIXlt.html}{POSIXct}
+value.
+If not specified, REDCap will assume no end time.}
+
 \item{suppress_redcapr_messages}{A logical to control whether to suppress messages
 from REDCapR API calls. Default \code{TRUE}.}
+
+\item{col_types}{A \code{\link[readr:cols]{readr::cols()}} object passed internally to \code{\link[readr:read_delim]{readr::read_csv()}}. Optional.
+See "Using \code{col_types}" for more information.}
 
 \item{guess_max}{A positive \link[base:numeric]{base::numeric} value
 passed to \code{\link[readr:read_delim]{readr::read_csv()}} that specifies the maximum number of records to
@@ -77,6 +95,8 @@ and transform the output into a "supertibble" that contains data
 and metadata organized into tibbles, broken down by instrument.
 }
 \details{
+\subsection{The block matrix}{
+
 This function uses the \href{https://ouhscbbmc.github.io/REDCapR/index.html}{REDCapR}
 package to query the REDCap API. The REDCap API returns a
 \href{https://en.wikipedia.org/wiki/Block_matrix}{block matrix} that mashes
@@ -84,6 +104,19 @@ data from all data collection instruments
 together. The \code{read_redcap()} function
 deconstructs the block matrix and splices the data into individual tibbles,
 where one tibble represents the data from one instrument.
+}
+
+\subsection{Using \code{col_types}}{
+
+REDCapR and REDCapTidieR use \link[readr:read_delim]{readr::read_csv} to to intelligently guess the data types of the
+block matrix. While REDCapTidieR makes some minor assumptions and manipulations to
+the final outputs, in some scenarios fringe issues may result in incorrectly
+assumed data types.
+
+To help with correcting these behaviors, \code{col_types} wraps \link[readr:cols]{readr::cols}
+lets users specify the expected data type. This is an advanced feature for
+users with an understanding of the REDCap API and block matrix.
+}
 }
 \examples{
 \dontrun{

@@ -7,6 +7,9 @@
 #' and metadata organized into tibbles, broken down by instrument.
 #'
 #' @details
+#'
+#' ## The block matrix
+#'
 #' This function uses the [REDCapR](https://ouhscbbmc.github.io/REDCapR/index.html)
 #' package to query the REDCap API. The REDCap API returns a
 #' [block matrix](https://en.wikipedia.org/wiki/Block_matrix) that mashes
@@ -14,6 +17,17 @@
 #' together. The `read_redcap()` function
 #' deconstructs the block matrix and splices the data into individual tibbles,
 #' where one tibble represents the data from one instrument.
+#'
+#' ## Using `col_types`
+#'
+#' REDCapR and REDCapTidieR use [readr::read_csv] to to intelligently guess the data types of the
+#' block matrix. While REDCapTidieR makes some minor assumptions and manipulations to
+#' the final outputs, in some scenarios fringe issues may result in incorrectly
+#' assumed data types.
+#'
+#' To help with correcting these behaviors, `col_types` wraps [readr::cols]
+#' lets users specify the expected data type. This is an advanced feature for
+#' users with an understanding of the REDCap API and block matrix.
 #'
 #' @return
 #' A `tibble` in which each row represents a REDCap instrument. It
@@ -58,6 +72,9 @@
 #' instruments. Setting to `TRUE` will treat the mixed instrument's non-repeating versions
 #' as repeating instruments with a single instance. Applies to longitudinal projects
 #' only. Default `FALSE`. Can be set globally with `options(redcaptidier.allow.mixed.structure = TRUE)`.
+#' @param col_types A [readr::cols()] object passed internally to [readr::read_csv()]. Optional.
+#' See "Using `col_types`" for more information.
+#' @inheritParams REDCapR::redcap_read_oneshot
 #'
 #' @examples
 #' \dontrun{
@@ -73,15 +90,20 @@
 #'
 #' @export
 
-read_redcap <- function(redcap_uri,
-                        token,
-                        raw_or_label = "label",
-                        forms = NULL,
-                        export_survey_fields = NULL,
-                        export_data_access_groups = NULL,
-                        suppress_redcapr_messages = TRUE,
-                        guess_max = Inf,
-                        allow_mixed_structure = getOption("redcaptidier.allow.mixed.structure", FALSE)) {
+read_redcap <- function(
+  redcap_uri,
+  token,
+  raw_or_label = "label",
+  forms = NULL,
+  export_survey_fields = NULL,
+  export_data_access_groups = NULL,
+  datetime_range_begin = as.POSIXct(NA),
+  datetime_range_end = as.POSIXct(NA),
+  suppress_redcapr_messages = TRUE,
+  col_types = NULL,
+  guess_max = Inf,
+  allow_mixed_structure = getOption("redcaptidier.allow.mixed.structure", FALSE)
+) {
   check_arg_is_character(redcap_uri, len = 1, any.missing = FALSE)
   check_arg_is_character(token, len = 1, any.missing = FALSE)
   check_arg_is_valid_token(token)
@@ -89,6 +111,8 @@ read_redcap <- function(redcap_uri,
   check_arg_is_character(forms, min.len = 1, null.ok = TRUE, any.missing = FALSE)
   check_arg_is_logical(export_survey_fields, len = 1, any.missing = FALSE, null.ok = TRUE)
   check_arg_is_logical(export_data_access_groups, len = 1, any.missing = FALSE, null.ok = TRUE)
+  check_arg_is_posixct(datetime_range_begin, len = 1, any.missing = TRUE)
+  check_arg_is_posixct(datetime_range_end, len = 1, any.missing = TRUE)
   check_arg_is_logical(suppress_redcapr_messages, len = 1, any.missing = FALSE)
   check_arg_is_logical(allow_mixed_structure, len = 1, any.missing = FALSE)
 
@@ -183,10 +207,15 @@ read_redcap <- function(redcap_uri,
       forms = forms_for_api_call,
       export_survey_fields = export_survey_fields,
       export_data_access_groups = export_data_access_groups,
+      datetime_range_begin = datetime_range_begin,
+      datetime_range_end = datetime_range_end,
       verbose = !suppress_redcapr_messages,
-      guess_max = guess_max
+      guess_max = guess_max,
+      col_types = col_types
     )
   })
+
+  check_metadata_field_types(db_data, db_metadata)
 
   # Check that results were returned
   check_redcap_populated(db_data)
@@ -194,10 +223,7 @@ read_redcap <- function(redcap_uri,
   # Check whether DAGs or survey fields are present in the project, if requested
   if (!is.null(export_data_access_groups_original)) {
     if (export_data_access_groups_original) {
-      check_data_arg_exists(db_data,
-        col = "redcap_data_access_group",
-        arg = "export_data_access_groups"
-      )
+      check_data_arg_exists(db_data, col = "redcap_data_access_group", arg = "export_data_access_groups")
     }
   }
 
@@ -221,10 +247,7 @@ read_redcap <- function(redcap_uri,
 
   if (!is.null(export_survey_fields_original)) {
     if (export_survey_fields_original) {
-      check_data_arg_exists(db_data,
-        col = "redcap_survey_identifier",
-        arg = "export_survey_fields"
-      )
+      check_data_arg_exists(db_data, col = "redcap_survey_identifier", arg = "export_survey_fields")
     }
   }
 
@@ -249,8 +272,7 @@ read_redcap <- function(redcap_uri,
     if ("redcap_repeat_instrument" %in% colnames(db_data)) {
       db_data <- db_data %>%
         filter(
-          .data$redcap_repeat_instrument %in% forms |
-            is.na(.data$redcap_repeat_instrument)
+          .data$redcap_repeat_instrument %in% forms | is.na(.data$redcap_repeat_instrument)
         )
 
       # Drop repeating fields if there are no remaining repeating instruments
@@ -445,8 +467,11 @@ add_metadata <- function(supertbl, db_metadata, redcap_uri, token, suppress_redc
     left_join(instrument_labs, by = "redcap_form_name") %>%
     left_join(metadata, by = "redcap_form_name") %>%
     relocate(
-      "redcap_form_name", "redcap_form_label", "redcap_data",
-      "redcap_metadata", "structure"
+      "redcap_form_name",
+      "redcap_form_label",
+      "redcap_data",
+      "redcap_metadata",
+      "structure"
     )
 
   # Add summary stats ----
@@ -454,8 +479,16 @@ add_metadata <- function(supertbl, db_metadata, redcap_uri, token, suppress_redc
     mutate(summary = map(.data$redcap_data, calc_metadata_stats)) %>%
     unnest_wider(summary) %>%
     relocate(
-      "redcap_form_name", "redcap_form_label", "redcap_data", "redcap_metadata",
-      "structure", "data_rows", "data_cols", "data_size", "data_na_pct", "form_complete_pct"
+      "redcap_form_name",
+      "redcap_form_label",
+      "redcap_data",
+      "redcap_metadata",
+      "structure",
+      "data_rows",
+      "data_cols",
+      "data_size",
+      "data_na_pct",
+      "form_complete_pct"
     )
 }
 
@@ -480,9 +513,7 @@ add_event_mapping <- function(supertbl, linked_arms, repeat_event_types) {
 
   if (!is.null(repeat_event_types)) {
     # Preserve factor levels post-join by referencing level order from linked_arms
-    repeat_event_types$redcap_event_name <- factor(repeat_event_types$redcap_event_name,
-      levels = levels(event_info$unique_event_name)
-    )
+    repeat_event_types$redcap_event_name <- factor(repeat_event_types$redcap_event_name, levels = levels(event_info$unique_event_name))
 
     event_info <- event_info %>%
       left_join(repeat_event_types, by = c("unique_event_name" = "redcap_event_name"))
@@ -494,7 +525,12 @@ add_event_mapping <- function(supertbl, linked_arms, repeat_event_types) {
       across(any_of("redcap_event"), ~ fct_inorder(redcap_event, ordered = TRUE))
     ) %>%
     select(
-      redcap_form_name = "form", "redcap_event", "event_name", "redcap_arm", "arm_name", any_of("repeat_type")
+      redcap_form_name = "form",
+      "redcap_event",
+      "event_name",
+      "redcap_arm",
+      "arm_name",
+      any_of("repeat_type")
     ) %>%
     nest(redcap_events = !"redcap_form_name")
 
@@ -521,8 +557,11 @@ add_event_mapping <- function(supertbl, linked_arms, repeat_event_types) {
 calc_metadata_stats <- function(data) {
   excluded_fields <- c(
     get_record_id_field(data),
-    "redcap_form_instance", "redcap_event_instance", "redcap_event",
-    "redcap_arm", "form_status_complete"
+    "redcap_form_instance",
+    "redcap_event_instance",
+    "redcap_event",
+    "redcap_arm",
+    "form_status_complete"
   )
 
   na_pct <- data %>%
@@ -535,7 +574,8 @@ calc_metadata_stats <- function(data) {
     summarise(avg_complete = mean(.data$form_status_complete == 2))
 
   list(
-    data_rows = nrow(data), data_cols = ncol(data),
+    data_rows = nrow(data),
+    data_cols = ncol(data),
     data_size = obj_size(data),
     data_na_pct = percent(na_pct, digits = 2, format = "fg"),
     form_complete_pct = percent(form_complete_pct, digits = 2, format = "fg")
@@ -607,9 +647,7 @@ get_repeat_event_types <- function(data) {
 #'
 #' @keywords internal
 
-update_dag_cols <- function(data,
-                            dag_data,
-                            raw_or_label) {
+update_dag_cols <- function(data, dag_data, raw_or_label) {
   if (raw_or_label == "haven") {
     named_vec <- dag_data$data_access_group_name
     names(named_vec) <- dag_data$unique_group_name
@@ -624,9 +662,7 @@ update_dag_cols <- function(data,
       )
   } else {
     data %>%
-      left_join(dag_data,
-        by = c("redcap_data_access_group" = "unique_group_name")
-      ) %>%
+      left_join(dag_data, by = c("redcap_data_access_group" = "unique_group_name")) %>%
       mutate(
         redcap_data_access_group = coalesce(
           .data$data_access_group_name,

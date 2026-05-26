@@ -1,5 +1,5 @@
 #' @title
-#' Add [skimr::skimr] metrics to a supertibble's metadata
+#' Add [skimr::skim] metrics to a supertibble's metadata
 #'
 #' @description
 #' Add default [skimr::skim] metrics to the `redcap_data` list elements of
@@ -12,7 +12,7 @@
 #' @param supertbl a supertibble generated using `read_redcap()`
 #'
 #' @return
-#' A supertibble with [skimr::skimr] metadata metrics
+#' A supertibble with [skimr::skim] metadata metrics
 #'
 #' @examples
 #' superheroes_supertbl
@@ -63,8 +63,11 @@ add_skimr_metadata <- function(supertbl) {
 skim_data <- function(redcap_data, redcap_metadata, is_labelled) {
   excluded_fields <- c(
     get_record_id_field(redcap_data),
-    "redcap_form_instance", "redcap_event_instance", "redcap_event",
-    "redcap_arm", "form_status_complete"
+    "redcap_form_instance",
+    "redcap_event_instance",
+    "redcap_event",
+    "redcap_arm",
+    "form_status_complete"
   )
 
   skimmed_data <- redcap_data %>%
